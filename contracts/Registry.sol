@@ -59,7 +59,7 @@ constructor() public{
   }
 /*function that allow to delete a property on the blockchain */
   function deleteProperty(uint pin) public isPropertyOwner(pin) returns(bool success) {
-    //require(isProperty(pin)!=address(0),"This PIN doens't exist");
+    require(properties[pin].owner!=address(0),"This PIN doens't exist");
     uint rowToDelete = properties[pin].listPointer;
     uint keyToMove   = propertyList[propertyList.length-1];
     propertyList[rowToDelete] = keyToMove;
