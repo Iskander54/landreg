@@ -8,9 +8,14 @@ contract('Registry',function(accounts){
     
     const alex=accounts[0]
     const kevin=accounts[1]
+    const yann=accounts[2]
 
     beforeEach(async () => {
         instance = await Registry.new()
+    })
+
+    it("Checking property should be able only when there is more than one",async()=>{
+        await catchRevert(instance.isProperty(2))
     })
 
     it("Check new property is created",async()=>{
@@ -46,13 +51,22 @@ contract('Registry',function(accounts){
         assert.equal(checkUpdate,kevin,"The property hasnt changed owner")
     })
 
-    it("Delete a property that has been added ",async()=>{
-        const add=await instance.newProperty(alex,3)
+    it("Delete a property by not the owner that has been added ",async()=>{
+        const add=await instance.newProperty(kevin,3)
         const checkAdded= await instance.isProperty(3)
-        if(checkAdded==alex){
-            const update=await instance.deleteProperty(3,{from: kevin})
+        await catchRevert(instance.deleteProperty(3,{from: yann}))
+        
+    })
+
+    it("Delete a property that has been added by the owner ",async()=>{
+        const add=await instance.newProperty(kevin,3)
+        const checkAdded= await instance.isProperty(3)
+        if(checkAdded==kevin){
+            const update=await instance.deleteProperty(3,{from:kevin})
         }
         const nb = await instance.getPropertyCount()
-        assert.equal(nb,0,"The property hasnt changed owner")
+        assert.equal(nb,0,"The deleteProperty is called by the owner and should be deleted")
     })
+
+
 })
