@@ -4,7 +4,7 @@ pragma solidity ^0.5.0;
 
 contract Registry {
 
-address payable public owner;
+address public owner;
 /* Data model that allows me to have a stucts with delete and index */
   struct Property {
     address owner;
