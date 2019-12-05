@@ -44,6 +44,18 @@ contract Mortgage {
     }
     }
 
+    function addOwner(address owner)
+        public
+        onlyWallet
+        ownerDoesNotExist(owner)
+        notNull(owner)
+        validRequirement(owners.length + 1, required)
+    {
+        isOwner[owner] = true;
+        owners.push(owner);
+        OwnerAddition(owner);
+    }
+
     /*
      * Public functions
      */
@@ -78,10 +90,21 @@ contract Mortgage {
         confirmTransaction(transactionId);
     }
 
+        /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
+    /// @param destination Transaction target address.
+    /// @param value Transaction ether value.
+    /// @param data Transaction data payload.
+    /// @return Returns transaction ID.
+    function addTransaction(BankContract tx) internal returns (uint transactionId) {
+        transactionId = transactionCount;
+        transactions[transactionId] = tx;
+        transactionCount += 1;
+        emit Submission(transactionId);
+    }
+
     /// @dev Allows an owner to confirm a transaction.
     /// @param transactionId Transaction ID.
     function confirmTransaction(uint transactionId) public  isParty() {
-        require(transactions[transactionId].destination != address(0));
         require(confirmations[transactionId][msg.sender] == false);
         confirmations[transactionId][msg.sender] = true;
         emit Confirmation(msg.sender, transactionId);
@@ -98,7 +121,7 @@ contract Mortgage {
         if (isConfirmed(transactionId)) {
             Transaction storage t = transactions[transactionId];  // using the "storage" keyword makes "t" a pointer to storage 
             t.executed = true;
-            (bool success, bytes memory returnedData) = t.destination.call.value(t.value)(t.data);
+            //(bool success, bytes memory returnedData) = t.destination.call.value(t.value)(t.data);
             if (success)
                 emit Execution(transactionId);
             else {
@@ -117,29 +140,14 @@ contract Mortgage {
     function isConfirmed(uint transactionId) internal view returns (bool) {
         uint count = 0;
         for (uint i=0; i<owners.length; i++) {
-            if (confirmations[transactionId][owners[i]])
+            if (confirmations[transactionId][parties[i]])
                 count += 1;
             if (count == required)
                 return true;
         }
     }
 
-    /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
-    /// @param destination Transaction target address.
-    /// @param value Transaction ether value.
-    /// @param data Transaction data payload.
-    /// @return Returns transaction ID.
-    function addTransaction(address destination, uint value, bytes memory data) internal returns (uint transactionId) {
-        transactionId = transactionCount;
-        transactions[transactionId] = Transaction({
-            destination: destination,
-            value: value,
-            data: data,
-            executed: false
-        });
-        transactionCount += 1;
-        emit Submission(transactionId);
-    }
+
 
 
 
