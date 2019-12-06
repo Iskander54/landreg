@@ -31,8 +31,9 @@ contract Mortgage {
         _;
     }
     
-    modifier isParty(uint pin){ require(isParty[msg.sender],"Only parties of this bankContract can call this function");_;}
-
+    //modifier isParty(uint pin){ require(isParty[msg.sender],"Only parties of this bankContract can call this function");_;}
+ 
+ 
 
     /// @dev Fallback function allows to deposit ether.
     function()
@@ -44,26 +45,16 @@ contract Mortgage {
     }
     }
 
-    function addOwner(address owner)
-        public
-        onlyWallet
-        ownerDoesNotExist(owner)
-        notNull(owner)
-        validRequirement(owners.length + 1, required)
-    {
-        isOwner[owner] = true;
-        owners.push(owner);
-        OwnerAddition(owner);
-    }
 
     /*
      * Public functions
      */
     /// @dev Contract constructor sets initial owners and required number of confirmations.
-    /// @param _owners List of initial owners.
+    /// @param _parties List of initial owners.
     /// @param _required Number of required confirmations.
     constructor(address[] memory _parties, uint _required) public validRequirement(_parties.length, _required) {
         for (uint i=0; i<_parties.length; i++) {
+            require(!isParty[_parties[i]] && _parties[i] != address(0));
             isParty[_parties[i]] = true;
         }
         parties = _parties;
@@ -73,12 +64,9 @@ contract Mortgage {
 
 
     /// @dev Allows an owner to submit and confirm a transaction.
-    /// @param destination Transaction target address.
-    /// @param value Transaction ether value.
-    /// @param data Transaction data payload.
     /// @return Returns transaction ID.
-    function submitTransaction(address _bank,address _beneficiary, uint pin, bytes memory data) public  isParty() returns (uint transactionId) {
-        BankContract tx = BankContract({
+    function submitTransaction(address _bank,address _beneficiary, uint _pin, uint _amount,uint _rates, uint _length) public returns (uint transactionId) {
+        BankContract memory tx = BankContract({
             bank: _bank,
             beneficiary: _beneficiary,
             pin:_pin,
@@ -91,20 +79,17 @@ contract Mortgage {
     }
 
         /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
-    /// @param destination Transaction target address.
-    /// @param value Transaction ether value.
-    /// @param data Transaction data payload.
     /// @return Returns transaction ID.
-    function addTransaction(BankContract tx) internal returns (uint transactionId) {
-        transactionId = transactionCount;
-        transactions[transactionId] = tx;
-        transactionCount += 1;
+    function addTransaction(BankContract memory tx) internal returns (uint transactionId) {
+        transactionId = MortgageCount;
+        mortgages[transactionId] = tx;
+        MortgageCount += 1;
         emit Submission(transactionId);
     }
 
     /// @dev Allows an owner to confirm a transaction.
     /// @param transactionId Transaction ID.
-    function confirmTransaction(uint transactionId) public  isParty() {
+    function confirmTransaction(uint transactionId) public {
         require(confirmations[transactionId][msg.sender] == false);
         confirmations[transactionId][msg.sender] = true;
         emit Confirmation(msg.sender, transactionId);
@@ -117,18 +102,20 @@ contract Mortgage {
 
     /// @dev Allows anyone to execute a confirmed transaction.
     /// @param transactionId Transaction ID.
-    function executeTransaction(uint transactionId) public {
+    function executeTransaction(uint transactionId) public returns (bool) {
         if (isConfirmed(transactionId)) {
-            Transaction storage t = transactions[transactionId];  // using the "storage" keyword makes "t" a pointer to storage 
-            t.executed = true;
+            //Transaction storage t = transactions[transactionId];  // using the "storage" keyword makes "t" a pointer to storage 
+            //t.executed = true;
             //(bool success, bytes memory returnedData) = t.destination.call.value(t.value)(t.data);
-            if (success)
-                emit Execution(transactionId);
-            else {
-                emit ExecutionFailure(transactionId);
-                t.executed = false;
-            }
-        }
+            //if (success)
+              //  emit Execution(transactionId);
+            //else {
+              //  emit ExecutionFailure(transactionId);
+               // t.executed = false;
+            //}
+//        }
+        return true;
+    }
     }
 
         /*
@@ -139,7 +126,7 @@ contract Mortgage {
     /// @return Confirmation status.
     function isConfirmed(uint transactionId) internal view returns (bool) {
         uint count = 0;
-        for (uint i=0; i<owners.length; i++) {
+        for (uint i=0; i<parties.length; i++) {
             if (confirmations[transactionId][parties[i]])
                 count += 1;
             if (count == required)

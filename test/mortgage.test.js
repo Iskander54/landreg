@@ -4,31 +4,48 @@ var Mortgage = artifacts.require('Mortgage')
 let catchRevert = require("./exceptionsHelpers.js").catchRevert
 const BN = web3.utils.BN
 
-contract('Mortgage',function(accounts){
+contract('Mortgage', function (accounts) {
 
-    const bank=accounts[0]
-    const client=accounts[1]
-    const prop_owner=accounts[2]
-    const other=accounts[3]
+    const bank = accounts[0]
+    const client = accounts[1]
+    const prop_owner = accounts[2]
+    const other = accounts[3]
 
-    beforeEach(async()=>{
-        instance = await Mortgage.new();
+
+    beforeEach(async () => {
+        instance = await Mortgage.new([bank,client,prop_owner],3);
     })
 
-    it("Check that the transaction is executed when all parties have sign the transaction",async()=>{
+    it("Check that the transaction is executed when all parties have sign the transaction", async () => {
+
+        const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
+        const tId2 = await instance.submitTransaction(bank,client,3,51, 3,99)
+        //assert.equal(events.length,2,"wesh1")
+       /* const clientconfirm = await instance.confirmTransaction(tId,{from: client}).then(function(events){
+            assert.equal(events[3].args.sender.valueOf(),client,"wesh2")
+        }).then(done).catch(done)
+        */
+        const clientconfirm = await instance.confirmTransaction(tId,{from: client})
+        const propconfirm = await instance.confirmTransaction(tId,{from: prop_owner})
+
+        assert.equal(propconfirm,true,"The transaction should be executed and return true ")
+
+
+    
+
 
     })
 
-    it("Unable to confirm a transaction if you are not a party",async()=>{
+    it("Unable to confirm a transaction if you are not a party", async () => {
 
     })
 
-    it("Client or Bank able to revoke contract within 14 days ",async()=>{
+    it("Client or Bank able to revoke contract within 14 days ", async () => {
 
     })
 
-    it("not able to process transaction if not all requirement met",async()=>{
-        
+    it("not able to process transaction if not all requirement met", async () => {
+
     })
 
 

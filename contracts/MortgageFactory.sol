@@ -6,6 +6,7 @@ import "./Mortgage.sol";
 ///@title Mortgage contract factory - Allows creation of mortgage contracts
 ///@author Alex-Kevin Loembe - <loembe.ak@gmail.com>
 contract MortgageFactory is Factory{
+    Mortgage[] public deployedMortgage;
 
     /*
      * Public functions
@@ -14,9 +15,10 @@ contract MortgageFactory is Factory{
      ///@param _parties list of the parties of this contract.
      ///@param _required number of required confirmations.
      ///@return returns the contracts address
-     function create(address[] _owners, uint_required) public returns (address mortgage){
-        mortgage = new Mortgage(_owners,_required);
-        register(mortgage);         
+     function create(address[] memory _parties, uint _required) public{
+        Mortgage mortgage = new Mortgage(_parties,_required);
+        deployedMortgage.push(mortgage);
+        //register(mortgage);         
      }  
 
 }
