@@ -11,6 +11,7 @@ contract Mortgage {
         uint rates;
         uint length;
         bool executed;
+        uint timestamp;
     }
 
     address[] public parties;
@@ -24,6 +25,7 @@ contract Mortgage {
     event Deposit(address indexed sender, uint value);
     event Confirmation(address indexed sender, uint indexed transactionId);
     event Execution(uint indexed transactionId);
+    event Revocation(uint transactionId,address indexed sender);
     event ExecutionFailure(uint indexed transactionId);
 
     modifier validRequirement(uint ownerCount, uint _required) {
@@ -74,7 +76,8 @@ contract Mortgage {
             amount: _amount,
             rates: _rates,
             length: _length,
-            executed: false
+            executed: false,
+            timestamp: block.timestamp
         });
         transactionId = addTransaction(tx);
         confirmTransaction(transactionId);
@@ -97,6 +100,7 @@ contract Mortgage {
     /// @param transactionId Transaction ID.
     function confirmTransaction(uint transactionId) public returns (bool) {
         require(confirmations[transactionId][msg.sender] == false);
+        require(isParty[msg.sender]==true);
         confirmations[transactionId][msg.sender] = true;
         emit Confirmation(msg.sender, transactionId);
         executeTransaction(transactionId);
@@ -104,13 +108,20 @@ contract Mortgage {
 
     /// @dev Allows an owner to revoke a confirmation for a transaction.
     /// @param transactionId Transaction ID.
-    function revokeConfirmation(uint transactionId) public {}
+    function revokeConfirmation(uint transactionId) public {
+        require(confirmations[transactionId][msg.sender] == true);
+        require(isParty[msg.sender]==true);
+        require(now<mortgages[transactionId].timestamp+1209600);
+        confirmations[transactionId][msg.sender] = false;
+        emit Revocation(transactionId,msg.sender);
+    }
 
     /// @dev Allows anyone to execute a confirmed transaction.
     /// @param transactionId Transaction ID.
     function executeTransaction(uint transactionId) public returns (bool) {
         if (isConfirmed(transactionId)) {
             mortgages[transactionId].executed=true;
+            mortgages[transactionId].timestamp=block.timestamp;
             emit Execution(transactionId);
         }else{
             emit ExecutionFailure(transactionId);

@@ -1,7 +1,9 @@
 // The public file for automated testing can be found here: https://gist.github.com/ConsenSys-Academy/e9ec0d8d6c53b56ca9673cfa139b5644
 
 var Registry = artifacts.require('Registry')
-let catchRevert = require("./exceptionsHelpers.js").catchRevert
+let catchRevert = require("./utils/exceptionsHelpers.js").catchRevert
+const helper = require('./utils/utils.js');
+
 const BN = web3.utils.BN
 
 contract('Registry',function(accounts){
