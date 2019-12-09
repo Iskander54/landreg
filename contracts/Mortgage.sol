@@ -10,12 +10,13 @@ contract Mortgage {
         uint amount;
         uint rates;
         uint length;
+        bool executed;
     }
 
     address[] public parties;
     uint public required=3;
     mapping (address => bool) public isParty;
-    uint public MortgageCount;
+    uint public MortgageCount=0;
     mapping (uint => BankContract) public mortgages;
     mapping (uint => mapping (address => bool)) public confirmations;
 
@@ -72,7 +73,8 @@ contract Mortgage {
             pin:_pin,
             amount: _amount,
             rates: _rates,
-            length: _length
+            length: _length,
+            executed: false
         });
         transactionId = addTransaction(tx);
         confirmTransaction(transactionId);
@@ -87,9 +89,13 @@ contract Mortgage {
         emit Submission(transactionId);
     }
 
+    function isExecuted(uint transactionId)public view returns (bool){
+        return mortgages[transactionId].executed;
+    }
+
     /// @dev Allows an owner to confirm a transaction.
     /// @param transactionId Transaction ID.
-    function confirmTransaction(uint transactionId) public {
+    function confirmTransaction(uint transactionId) public returns (bool) {
         require(confirmations[transactionId][msg.sender] == false);
         confirmations[transactionId][msg.sender] = true;
         emit Confirmation(msg.sender, transactionId);
@@ -104,18 +110,23 @@ contract Mortgage {
     /// @param transactionId Transaction ID.
     function executeTransaction(uint transactionId) public returns (bool) {
         if (isConfirmed(transactionId)) {
+            mortgages[transactionId].executed=true;
+            emit Execution(transactionId);
+        }else{
+            emit ExecutionFailure(transactionId);
+        }
             //Transaction storage t = transactions[transactionId];  // using the "storage" keyword makes "t" a pointer to storage 
             //t.executed = true;
             //(bool success, bytes memory returnedData) = t.destination.call.value(t.value)(t.data);
             //if (success)
-              //  emit Execution(transactionId);
+        
             //else {
               //  emit ExecutionFailure(transactionId);
                // t.executed = false;
             //}
 //        }
-        return true;
-    }
+        //return true;
+    //}
     }
 
         /*
