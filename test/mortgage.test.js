@@ -16,7 +16,7 @@ contract('Mortgage', function (accounts) {
 
     beforeEach(async () => {
         instance = await Mortgage.new([bank,client,prop_owner],3)
-        const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
+        
     })
 
     it("Check that the transaction is executed when all parties have sign the transaction", async () => {
@@ -26,26 +26,28 @@ contract('Mortgage', function (accounts) {
             assert.equal(events[3].args.sender.valueOf(),client,"wesh2")
         }).then(done).catch(done)
         */
+       const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
         const clientconfirm = await instance.confirmTransaction(0,{from: client})
         const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
+        for (let i=0; i<3 ;i++){
+            propconfirm.logs[1].event.transactionId
+        }
 
         assert.equal(propconfirm.logs[1].event,"Execution","The transaction should be executed and return true ")
 
     })
 
     it("Unable to confirm a transaction if you are not a party", async () => {
-        for (let i=0; i<3 ;i++){
-            console.log(await instance.mortgages[0][0])
-        }
+        const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
         await catchRevert(instance.confirmTransaction(0,{from: accounts[4]}))
     })
 
-    it("Client, Bank or Client able to revoke contract within 14 days ", async () => {
+    it("Client, Bank or Client able to revoke contract ", async () => {
+        const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
         const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
-        await helper.advanceTimeAndBlock(3600*20);
-        const originalBlock = web3.eth.getBlock('latest');
+        const proprevoc = await instance.revokeConfirmation(0,{from:prop_owner})
         const clientconfirm = await instance.confirmTransaction(0,{from: client})
-        await catchRevert(instance.revokeConfirmation(0,{from: prop_owner}))
+        assert.equal(clientconfirm.logs[1].event,"ExecutionFailure","Transaction shouldn't be confirmed")
     })
 
     it("not able to process transaction if not all requirement met", async () => {

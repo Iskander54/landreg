@@ -81,6 +81,7 @@ contract Mortgage {
         });
         transactionId = addTransaction(tx);
         confirmTransaction(transactionId);
+        return transactionId;
     }
 
         /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
@@ -111,7 +112,6 @@ contract Mortgage {
     function revokeConfirmation(uint transactionId) public {
         require(confirmations[transactionId][msg.sender] == true);
         require(isParty[msg.sender]==true);
-        require(now<mortgages[transactionId].timestamp+1209600);
         confirmations[transactionId][msg.sender] = false;
         emit Revocation(transactionId,msg.sender);
     }
