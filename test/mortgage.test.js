@@ -54,5 +54,14 @@ contract('Mortgage', function (accounts) {
 
     })
 
+    it("Checking if a mortgage has been executed", async () => {
+        const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
+        const clientconfirm = await instance.confirmTransaction(0,{from: client})
+        const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
+
+        assert.equal(isExecuted(0),true,'all parties have confirmed so it should be executed')
+
+    })
+
 
 })

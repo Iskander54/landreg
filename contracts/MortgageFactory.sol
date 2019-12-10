@@ -18,7 +18,7 @@ contract MortgageFactory is Factory{
      function create(address[] memory _parties, uint _required) public{
         Mortgage mortgage = new Mortgage(_parties,_required);
         deployedMortgage.push(mortgage);
-        //register(mortgage);         
+        register(mortgage);         
      }  
 
 }

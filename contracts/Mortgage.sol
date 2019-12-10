@@ -11,7 +11,6 @@ contract Mortgage {
         uint rates;
         uint length;
         bool executed;
-        uint timestamp;
     }
 
     address[] public parties;
@@ -77,7 +76,6 @@ contract Mortgage {
             rates: _rates,
             length: _length,
             executed: false,
-            timestamp: block.timestamp
         });
         transactionId = addTransaction(tx);
         confirmTransaction(transactionId);
@@ -121,13 +119,13 @@ contract Mortgage {
     function executeTransaction(uint transactionId) public returns (bool) {
         if (isConfirmed(transactionId)) {
             mortgages[transactionId].executed=true;
-            mortgages[transactionId].timestamp=block.timestamp;
             emit Execution(transactionId);
+            
         }else{
             emit ExecutionFailure(transactionId);
         }
             //Transaction storage t = transactions[transactionId];  // using the "storage" keyword makes "t" a pointer to storage 
-            //t.executed = true;
+            t.executed = true;
             //(bool success, bytes memory returnedData) = t.destination.call.value(t.value)(t.data);
             //if (success)
         
