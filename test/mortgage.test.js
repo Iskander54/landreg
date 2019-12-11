@@ -33,11 +33,12 @@ contract('Mortgage', function (accounts) {
         console.log(actualBalance1)
         console.log(actualBalance2)
     
-       const tId = await instance.submitTransaction(bank,client,2,5999, 2,98,{value: 5999})
+       const tId = await instance.submitTransaction(bank,client,2,5000000000000, 2,98,{value: 5000000000000})
         let ball = await instance.getDeposit()
         console.log(ball.toNumber())
-        const clientconfirm = await instance.confirmTransaction(0,{from: client})
+        
         const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
+        const clientconfirm = await instance.confirmTransaction(0,{from: client})
         let newBalance0 = await web3.eth.getBalance(accounts[0])
         let newBalance1 = await web3.eth.getBalance(accounts[1])
         let newBalance2 = await web3.eth.getBalance(accounts[2])
@@ -47,7 +48,7 @@ contract('Mortgage', function (accounts) {
         console.log(bal.toNumber())
         
 
-        assert.deepEqual(actualBalance1, newBalance1, "Balance incorrect!");
+        assert.isAbove(actualBalance2.toNumber(), newBalance2.toNumber(), "Balance incorrect!");
         
         /*
         assert.equal(propconfirm.logs[1].event,"Execution","The transaction should be executed and return true ")

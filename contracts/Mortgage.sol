@@ -67,22 +67,16 @@ contract Mortgage {
         pin_owner =_pin_owner;
         required = _required;
     }
-    /*
-    function deposit(uint256 amount,address _bank) payable public{
-        require(msg.sender == _bank);
-        require(msg.value == amount);
-    }
-    */
+
     function getDeposit() public view returns (uint256){
         return address(this).balance;
     }
 
     function withdraw() public{
-        require(msg.sender == pin_owner);
+        require(isParty[msg.sender],"Only party");
         require(pendingWithdrawals[pin_owner]!=0);
         pendingWithdrawals[pin_owner]=0;
-        msg.sender.transfer(address(this).balance);
-        
+        pin_owner.transfer(address(this).balance);
     }
 
 
@@ -149,18 +143,6 @@ contract Mortgage {
         }else{
             emit ExecutionFailure(transactionId);
         }
-            //Transaction storage t = transactions[transactionId];  // using the "storage" keyword makes "t" a pointer to storage 
-
-            //(bool success, bytes memory returnedData) = t.destination.call.value(t.value)(t.data);
-            //if (success)
-        
-            //else {
-              //  emit ExecutionFailure(transactionId);
-               // t.executed = false;
-            //}
-//        }
-        //return true;
-    //}
     }
 
         /*
