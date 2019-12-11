@@ -15,7 +15,7 @@ contract('Mortgage', function (accounts) {
 
 
     beforeEach(async () => {
-        instance = await Mortgage.new([bank,client,prop_owner],3)
+        instance = await Mortgage.new(bank,client,prop_owner,3)
         
     })
 
@@ -26,17 +26,35 @@ contract('Mortgage', function (accounts) {
             assert.equal(events[3].args.sender.valueOf(),client,"wesh2")
         }).then(done).catch(done)
         */
-       const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
+       let actualBalance0 = await web3.eth.getBalance(accounts[0])
+       let actualBalance1 = await web3.eth.getBalance(accounts[1])
+       let actualBalance2 = await web3.eth.getBalance(accounts[2])
+        console.log(actualBalance0)
+        console.log(actualBalance1)
+        console.log(actualBalance2)
+    
+       const tId = await instance.submitTransaction(bank,client,2,5999, 2,98,{value: 5999})
+        let ball = await instance.getDeposit()
+        console.log(ball.toNumber())
         const clientconfirm = await instance.confirmTransaction(0,{from: client})
         const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
-        for (let i=0; i<3 ;i++){
-            propconfirm.logs[1].event.transactionId
-        }
+        let newBalance0 = await web3.eth.getBalance(accounts[0])
+        let newBalance1 = await web3.eth.getBalance(accounts[1])
+        let newBalance2 = await web3.eth.getBalance(accounts[2])
+        
+        console.log(newBalance0,newBalance1,newBalance2)
+        let bal = await instance.getDeposit()
+        console.log(bal.toNumber())
+        
 
+        assert.deepEqual(actualBalance1, newBalance1, "Balance incorrect!");
+        
+        /*
         assert.equal(propconfirm.logs[1].event,"Execution","The transaction should be executed and return true ")
+        */
 
     })
-
+/*
     it("Unable to confirm a transaction if you are not a party", async () => {
         const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
         await catchRevert(instance.confirmTransaction(0,{from: accounts[4]}))
@@ -50,8 +68,13 @@ contract('Mortgage', function (accounts) {
         assert.equal(clientconfirm.logs[1].event,"ExecutionFailure","Transaction shouldn't be confirmed")
     })
 
-    it("not able to process transaction if not all requirement met", async () => {
+    it("check depositing ether to the contract", async () => {
+        const tId = await instance.submitTransaction(bank,client,2,5000, 2,98,{value : 5000})
 
+        const bal = await instance.getDeposit();
+        console.log(bal)
+
+        assert.equal(bal,5000," ca devrait etre 5000 ether")
     })
 
     it("Checking if a mortgage has been executed", async () => {
@@ -63,5 +86,5 @@ contract('Mortgage', function (accounts) {
 
     })
 
-
+*/
 })

@@ -12,13 +12,12 @@ contract MortgageFactory is Factory{
      * Public functions
      */
      ///@dev Allows verified creation of mortgage contracts.
-     ///@param _parties list of the parties of this contract.
      ///@param _required number of required confirmations.
      ///@return returns the contracts address
-     function create(address[] memory _parties, uint _required) public{
-        Mortgage mortgage = new Mortgage(_parties,_required);
+     function create(address _bank, address _client, address payable _pin_owner, uint _required) public{
+        Mortgage mortgage = new Mortgage(_bank,_client,_pin_owner,_required);
         deployedMortgage.push(mortgage);
-        register(mortgage);         
+        //register(mortgage);         
      }  
 
 }

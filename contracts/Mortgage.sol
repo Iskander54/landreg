@@ -14,11 +14,13 @@ contract Mortgage {
     }
 
     address[] public parties;
+    address payable pin_owner;
     uint public required=3;
     mapping (address => bool) public isParty;
     uint public MortgageCount=0;
     mapping (uint => BankContract) public mortgages;
     mapping (uint => mapping (address => bool)) public confirmations;
+    mapping (address => uint) pendingWithdrawals;
 
     event Submission(uint indexed transactionId);
     event Deposit(address indexed sender, uint value);
@@ -26,6 +28,7 @@ contract Mortgage {
     event Execution(uint indexed transactionId);
     event Revocation(uint transactionId,address indexed sender);
     event ExecutionFailure(uint indexed transactionId);
+
 
     modifier validRequirement(uint ownerCount, uint _required) {
         if (   _required > ownerCount || _required == 0 || ownerCount == 0)
@@ -52,22 +55,41 @@ contract Mortgage {
      * Public functions
      */
     /// @dev Contract constructor sets initial owners and required number of confirmations.
-    /// @param _parties List of initial owners.
     /// @param _required Number of required confirmations.
-    constructor(address[] memory _parties, uint _required) public validRequirement(_parties.length, _required) {
-        for (uint i=0; i<_parties.length; i++) {
-            require(!isParty[_parties[i]] && _parties[i] != address(0));
-            isParty[_parties[i]] = true;
+    constructor(address _bank, address _client, address payable _pin_owner, uint _required) public {
+        parties.push(_bank);
+        parties.push(_client);
+        parties.push(_pin_owner);
+        for (uint i=0; i<parties.length; i++) {
+            require(!isParty[parties[i]] && parties[i] != address(0));
+            isParty[parties[i]] = true;
         }
-        parties = _parties;
+        pin_owner =_pin_owner;
         required = _required;
+    }
+    /*
+    function deposit(uint256 amount,address _bank) payable public{
+        require(msg.sender == _bank);
+        require(msg.value == amount);
+    }
+    */
+    function getDeposit() public view returns (uint256){
+        return address(this).balance;
+    }
+
+    function withdraw() public{
+        require(msg.sender == pin_owner);
+        require(pendingWithdrawals[pin_owner]!=0);
+        pendingWithdrawals[pin_owner]=0;
+        msg.sender.transfer(address(this).balance);
+        
     }
 
 
 
     /// @dev Allows an owner to submit and confirm a transaction.
     /// @return Returns transaction ID.
-    function submitTransaction(address _bank,address _beneficiary, uint _pin, uint _amount,uint _rates, uint _length) public returns (uint transactionId) {
+    function submitTransaction(address _bank,address _beneficiary, uint _pin, uint _amount,uint _rates, uint _length) payable public returns (uint transactionId) {
         BankContract memory tx = BankContract({
             bank: _bank,
             beneficiary: _beneficiary,
@@ -75,9 +97,11 @@ contract Mortgage {
             amount: _amount,
             rates: _rates,
             length: _length,
-            executed: false,
+            executed: false
         });
         transactionId = addTransaction(tx);
+        pendingWithdrawals[pin_owner]=_amount;
+        address(this).transfer(_amount);
         confirmTransaction(transactionId);
         return transactionId;
     }
@@ -116,16 +140,17 @@ contract Mortgage {
 
     /// @dev Allows anyone to execute a confirmed transaction.
     /// @param transactionId Transaction ID.
-    function executeTransaction(uint transactionId) public returns (bool) {
+    function executeTransaction(uint transactionId) public payable returns (bool) {
         if (isConfirmed(transactionId)) {
+            //pin_owner.transfer(mortgages[transactionId].amount);
             mortgages[transactionId].executed=true;
             emit Execution(transactionId);
-            
+            withdraw();
         }else{
             emit ExecutionFailure(transactionId);
         }
             //Transaction storage t = transactions[transactionId];  // using the "storage" keyword makes "t" a pointer to storage 
-            t.executed = true;
+
             //(bool success, bytes memory returnedData) = t.destination.call.value(t.value)(t.data);
             //if (success)
         
