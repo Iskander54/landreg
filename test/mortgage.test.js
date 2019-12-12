@@ -20,20 +20,12 @@ contract('Mortgage', function (accounts) {
     })
 
     it("Check that the transaction is executed when all parties have sign the transaction", async () => {
-        //const tId2 = await instance.submitTransaction(bank,client,3,51, 3,99)
-        //assert.equal(events.length,2,"wesh1")
-       /* const clientconfirm = await instance.confirmTransaction(tId,{from: client}).then(function(events){
-            assert.equal(events[3].args.sender.valueOf(),client,"wesh2")
-        }).then(done).catch(done)
-        */
        let actualBalance0 = await web3.eth.getBalance(accounts[0])
        let actualBalance1 = await web3.eth.getBalance(accounts[1])
        let actualBalance2 = await web3.eth.getBalance(accounts[2])
-        console.log(actualBalance0)
-        console.log(actualBalance1)
-        console.log(actualBalance2)
+        console.log(actualBalance0, actualBalance1,actualBalance2)
     
-       const tId = await instance.submitTransaction(bank,client,2,5000000000000, 2,98,{value: 5000000000000})
+       const tId = await instance.submitTransaction(bank,client,2,200000000000000,2,98,{value:200000000000000 })
         let ball = await instance.getDeposit()
         console.log(ball.toNumber())
         
@@ -46,46 +38,37 @@ contract('Mortgage', function (accounts) {
         console.log(newBalance0,newBalance1,newBalance2)
         let bal = await instance.getDeposit()
         console.log(bal.toNumber())
+        let before = parseInt(actualBalance2,10)
+        let after = parseInt(newBalance2,10);
+        console.log(before,after);
         
 
-        assert.isAbove(actualBalance2.toNumber(), newBalance2.toNumber(), "Balance incorrect!");
+        assert.isAbove(before,after, "Balance incorrect!");
         
         /*
         assert.equal(propconfirm.logs[1].event,"Execution","The transaction should be executed and return true ")
         */
 
     })
-/*
+
     it("Unable to confirm a transaction if you are not a party", async () => {
-        const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
+        const tId = await instance.submitTransaction(bank,client,2,50, 2,98,{value:50})
         await catchRevert(instance.confirmTransaction(0,{from: accounts[4]}))
     })
 
     it("Client, Bank or Client able to revoke contract ", async () => {
-        const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
+        const tId = await instance.submitTransaction(bank,client,2,50, 2,98,{value:50})
         const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
         const proprevoc = await instance.revokeConfirmation(0,{from:prop_owner})
         const clientconfirm = await instance.confirmTransaction(0,{from: client})
         assert.equal(clientconfirm.logs[1].event,"ExecutionFailure","Transaction shouldn't be confirmed")
     })
 
-    it("check depositing ether to the contract", async () => {
-        const tId = await instance.submitTransaction(bank,client,2,5000, 2,98,{value : 5000})
+    it("check that bank has to deposit same amount has in the contract", async () => {
 
-        const bal = await instance.getDeposit();
-        console.log(bal)
-
-        assert.equal(bal,5000," ca devrait etre 5000 ether")
+        await catchRevert(instance.submitTransaction(bank,client,2,5000, 2,98,{value : 4999}))
     })
 
-    it("Checking if a mortgage has been executed", async () => {
-        const tId = await instance.submitTransaction(bank,client,2,50, 2,98)
-        const clientconfirm = await instance.confirmTransaction(0,{from: client})
-        const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
 
-        assert.equal(isExecuted(0),true,'all parties have confirmed so it should be executed')
 
-    })
-
-*/
 })

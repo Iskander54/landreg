@@ -34,10 +34,7 @@ contract Mortgage {
         if (   _required > ownerCount || _required == 0 || ownerCount == 0)
             revert();
         _;
-    }
-    
-    //modifier isParty(uint pin){ require(isParty[msg.sender],"Only parties of this bankContract can call this function");_;}
- 
+    } 
  
 
     /// @dev Fallback function allows to deposit ether.
@@ -74,6 +71,7 @@ contract Mortgage {
 
     function withdraw() public{
         require(isParty[msg.sender],"Only party");
+        // against re-entrancy attack 
         require(pendingWithdrawals[pin_owner]!=0);
         pendingWithdrawals[pin_owner]=0;
         pin_owner.transfer(address(this).balance);
@@ -95,6 +93,7 @@ contract Mortgage {
         });
         transactionId = addTransaction(tx);
         pendingWithdrawals[pin_owner]=_amount;
+        require(msg.value == _amount,"The sender has to deposit the exact price of the loan in the contract");
         address(this).transfer(_amount);
         confirmTransaction(transactionId);
         return transactionId;
