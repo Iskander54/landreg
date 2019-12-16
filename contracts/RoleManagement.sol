@@ -3,7 +3,7 @@ pragma solidity ^0.5.0;
 import "@openzeppelin/contracts/access/Roles.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 
-contract RBAC {
+contract RoleManagement is Ownable {
   using Roles for Roles.Role;
 
   mapping (string => Roles.Role) private roles;
