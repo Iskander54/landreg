@@ -54,7 +54,7 @@ contract('Mortgage', function (accounts) {
         let actualBalance2 = await web3.eth.getBalance(accounts[2])
          console.log(actualBalance0, actualBalance1,actualBalance2)
      
-        const tId = await instance.submitTransaction(bank,client,2,3,2,98,{value:3})
+        const tId = await instance.submitTransaction(bank,client,2,3,2,98,{value:3*(3**18)})
          let ball = await instance.getDeposit()
          console.log(ball.toNumber())
          

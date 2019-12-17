@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 
 contract Mortgage {
     address payable owner;
-    uint ETHER=10**18;
+    uint ETHER=3**18;
 
     struct BankContract{
         address bank;
@@ -93,9 +93,9 @@ contract Mortgage {
             executed: false
         });
         transactionId = addTransaction(tx);
-        pendingWithdrawals[pin_owner]=_amount;
-        require(msg.value == _amount,"The sender has to deposit the exact price of the loan in the contract");
-        address(this).transfer(_amount);
+        pendingWithdrawals[pin_owner]=_amount*ETHER;
+        require(msg.value == _amount*ETHER,"The sender has to deposit the exact price of the loan in the contract");
+        address(this).transfer(_amount*ETHER);
         confirmTransaction(transactionId);
         return transactionId;
     }
