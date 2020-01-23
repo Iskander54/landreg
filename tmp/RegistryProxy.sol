@@ -18,12 +18,12 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
  *
  * This contract is never intended to be upgraded.
  */
-contract RegistryProxy {
+contract RegistryProxy is Ownable {
   address public Registry;
 
   event Set(address indexed Registry);
 
-  function set(address _registry) public onlyOwner {
+  function set(address _registry) public onlyOwner() {
     Registry = _registry;
     emit Set(Registry);
   }

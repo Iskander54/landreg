@@ -83,7 +83,7 @@ contract Mortgage {
     /// @dev Allows an owner to submit and confirm a transaction.
     /// @return Returns transaction ID.
     function submitTransaction(address _bank,address _beneficiary, uint _pin, uint _amount,uint _rates, uint _length) payable public returns (uint transactionId) {
-        BankContract memory tx = BankContract({
+        BankContract memory trx = BankContract({
             bank: _bank,
             beneficiary: _beneficiary,
             pin:_pin,
@@ -92,7 +92,7 @@ contract Mortgage {
             length: _length,
             executed: false
         });
-        transactionId = addTransaction(tx);
+        transactionId = addTransaction(trx);
         pendingWithdrawals[pin_owner]=_amount*ETHER;
         require(msg.value == _amount*ETHER,"The sender has to deposit the exact price of the loan in the contract");
         address(this).transfer(_amount*ETHER);
@@ -102,9 +102,9 @@ contract Mortgage {
 
         /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
     /// @return Returns transaction ID.
-    function addTransaction(BankContract memory tx) internal returns (uint transactionId) {
+    function addTransaction(BankContract memory txx) internal returns (uint transactionId) {
         transactionId = MortgageCount;
-        mortgages[transactionId] = tx;
+        mortgages[transactionId] = txx;
         MortgageCount += 1;
         emit Submission(transactionId);
     }
