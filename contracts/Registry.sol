@@ -24,6 +24,7 @@ address public owner;
 
 constructor() public{
   owner=msg.sender;
+  propertyList.push(5);
 }
 
 /* Function that check if a PIN (property identification number) exists */
