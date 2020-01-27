@@ -7,11 +7,11 @@ import {
   Route,
   Link
 } from "react-router-dom";
+
 import "./App.css";
 
 
-
-class App extends Component {
+class Admin extends Component {
   constructor(props) {
     super(props);
     this.state = { storageValue: null, web3: null, accounts: null,
@@ -91,8 +91,6 @@ class App extends Component {
   addProperty = async(event) => {
     event.preventDefault();
     const { accounts, contract } = this.state;
-    console.log(this.state.add_address)
-    console.log(this.state.add_pin)
     const resp = await contract.methods.newProperty(this.state.add_address,this.state.add_pin).send({from:accounts[0]});
     alert('Property added : ' + resp);
     this.checkProperties();
@@ -134,7 +132,24 @@ class App extends Component {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
     return (
-      <div className="App">
+    
+      <div className="Admin">
+        <Router>
+        <div>
+          <nav>
+            <ul>
+              <li>
+                <Link to="/Mortgage">Mortgage</Link>
+              </li>
+            </ul>
+          </nav>
+      <Switch>
+        <Route path="/Mortgage">
+        <Mortgage />
+        </Route>
+      </Switch>
+      </div>
+      </Router>
         <h1>Good to Go!</h1>
         <h2>Smart Contract Example</h2>
         <p>
@@ -185,14 +200,8 @@ class App extends Component {
         <input type="submit" value="Delete" />
       </form>
 
-      <div>
-
-
-
-      </div>
       </div>
     );
   }
 }
-
-export default App;
+export default Admin;

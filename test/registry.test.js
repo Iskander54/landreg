@@ -17,6 +17,8 @@ contract('Registry',function(accounts){
     })
 
     it("Checking property should be able only when there is more than one",async()=>{
+
+        
         await catchRevert(instance.isProperty(2))
     })
 
@@ -28,6 +30,7 @@ contract('Registry',function(accounts){
     })
 
     it("Should add two property to the blockchain and count them",async()=>{
+        const before = await instance.getPropertyCount()
         const tx1=await instance.newProperty(alex,5)
         /*
         if (tx.logs[0].event == "PropertyAdd") {
@@ -40,7 +43,7 @@ contract('Registry',function(accounts){
             eventEmitted = true
         }*/
         const nb = await instance.getPropertyCount()
-        assert.equal(nb,2,'the number of accounts is the same as the number of added accounts')
+        assert.equal(nb.toNumber(),before.toNumber()+2,'the number of accounts is the same as the number of added accounts')
     })
 
     it("Update a property that has been added ",async()=>{
@@ -62,12 +65,13 @@ contract('Registry',function(accounts){
 
     it("Delete a property that has been added by the owner ",async()=>{
         const add=await instance.newProperty(kevin,3)
+        const before= await instance.getPropertyCount()
         const checkAdded= await instance.isProperty(3)
         if(checkAdded==kevin){
             const update=await instance.deleteProperty(3,{from:kevin})
         }
         const nb = await instance.getPropertyCount()
-        assert.equal(nb,0,"The deleteProperty is called by the owner and should be deleted")
+        assert.equal(nb.toNumber(),before.toNumber()-1,"The deleteProperty is called by the owner and should be deleted")
     })
 
 

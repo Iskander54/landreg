@@ -24,8 +24,13 @@ address public owner;
 
 constructor() public{
   owner=msg.sender;
-  propertyList.push(5);
+  properties[1].owner = 0xdfde02443BB07858A44b917c74344e8AD6273CCc;
+  properties[1].listPointer = propertyList.push(1)-1;
 }
+
+  function listProperties() public view returns(uint[] memory ){
+    return propertyList;
+  }
 
 /* Function that check if a PIN (property identification number) exists */
   function isProperty(uint pin) public view returns(address) {
@@ -40,13 +45,14 @@ constructor() public{
     /* Check the number of property on the blockchain */
   function getPropertyCount() public view returns(uint propertyCount) {
     return propertyList.length;
+
   }
   
 /*function that create a new property on the blockchain */
   function newProperty(address ownerAddress, uint pin) public returns(bool success) {
     require(properties[pin].owner==address(0),"This PIN already exist");
     properties[pin].owner = ownerAddress;
-    properties[pin].listPointer = propertyList.push(pin) - 1;
+    properties[pin].listPointer = propertyList.push(pin)-1;
     emit LogNewProperty(pin,ownerAddress);
     return true;
   }
