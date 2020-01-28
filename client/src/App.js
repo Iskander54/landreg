@@ -7,6 +7,8 @@ import {
   Route,
   Link
 } from "react-router-dom";
+import Mortgage from "./Mortgage";
+import Admin from "./Admin"
 import "./App.css";
 
 
@@ -135,6 +137,34 @@ class App extends Component {
     }
     return (
       <div className="App">
+        <Router>
+        <div>
+          <nav>
+            <ul>
+              <li>
+                <Link to="/">Home</Link>
+              </li>
+              <li>
+                <Link to="/Mortgage">Mortgage</Link>
+              </li>
+              <li>
+                <Link to="/Admin">Admin</Link>
+              </li>
+            </ul>
+          </nav>
+      <Switch>
+        <Route path="/Mortgage">
+        <Mortgage />
+        </Route>
+        <Route path="/Admin">
+        <Admin web3={this.state.web3} accounts={this.state.accounts} contract={this.state.contract} />
+        </Route>
+        <Route path="/">
+            <App />
+        </Route>
+      </Switch>
+      </div>
+      </Router>
         <h1>Good to Go!</h1>
         <h2>Smart Contract Example</h2>
         <p>

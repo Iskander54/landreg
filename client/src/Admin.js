@@ -7,7 +7,8 @@ import {
   Route,
   Link
 } from "react-router-dom";
-
+import Mortgage from "./Mortgage"
+import App from "./App"
 import "./App.css";
 
 
@@ -32,9 +33,10 @@ class Admin extends Component {
   }
 
   componentDidMount = async () => {
-  
+      /*
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
+      
 
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
@@ -46,7 +48,9 @@ class Admin extends Component {
         Registry.abi,
         deployedNetwork && deployedNetwork.address,
       );
-      this.setState({ web3, accounts, contract: instance }, this.runExample);
+      */
+      //this.setState({ web3, accounts, contract: instance }, this.runExample);
+      //this.setState({ web3:this.props.web3, accounts:this.props.accounts, contract: this.props.contract}, this.runExample);
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
@@ -59,16 +63,16 @@ class Admin extends Component {
   };
 
   checkProperties = async(event)=>{
-    const { accounts, contract } = this.state;
+    const { accounts, contract } = this.props;
 
-    const response = await this.state.contract.methods.getPropertyCount().call();
+    const response = await contract.methods.getPropertyCount().call();
     this.setState({ form: response });
-    const wesh = await this.state.contract.methods.properties(1).call();
+    const wesh = await contract.methods.properties(1).call();
     var test=[];
     var pins=[];
     for(var i=0;i<response;i++){
-      const index = await this.state.contract.methods.propertyList(i).call();
-      const mapping = await this.state.contract.methods.properties(index).call();
+      const index = await contract.methods.propertyList(i).call();
+      const mapping = await contract.methods.properties(index).call();
       test.push(mapping);
       pins.push(index)
     }
@@ -90,7 +94,7 @@ class Admin extends Component {
 
   addProperty = async(event) => {
     event.preventDefault();
-    const { accounts, contract } = this.state;
+    const { accounts, contract } = this.props;
     const resp = await contract.methods.newProperty(this.state.add_address,this.state.add_pin).send({from:accounts[0]});
     alert('Property added : ' + resp);
     this.checkProperties();
@@ -107,7 +111,7 @@ class Admin extends Component {
 
   updProperty = async(event) => {
     event.preventDefault();
-    const { accounts, contract } = this.state;
+    const { accounts, contract } = this.props;
     const resp = await contract.methods.updateProperty(this.state.upd_address,this.state.upd_pin).send({from:accounts[0]});
     alert('Property updated: ' + resp);
     this.checkProperties();
@@ -128,30 +132,14 @@ class Admin extends Component {
   }
 
   render() {
-    if (!this.state.web3) {
+    if (!this.props.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
     return (
     
       <div className="Admin">
-        <Router>
-        <div>
-          <nav>
-            <ul>
-              <li>
-                <Link to="/Mortgage">Mortgage</Link>
-              </li>
-            </ul>
-          </nav>
-      <Switch>
-        <Route path="/Mortgage">
-        <Mortgage />
-        </Route>
-      </Switch>
-      </div>
-      </Router>
-        <h1>Good to Go!</h1>
-        <h2>Smart Contract Example</h2>
+        <h1>Admin</h1>
+        <h2>{this.props.accounts[0]}</h2>
         <p>
           <div><strong>Owner's address</strong> -- <strong>Property Identification Number ({this.state.storageValue})</strong></div>
           <div>
