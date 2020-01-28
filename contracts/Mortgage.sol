@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 
 contract Mortgage {
     address payable owner;
-    uint ETHER=3**18;
+    uint ETHER=(10**18);
 
     struct BankContract{
         address bank;

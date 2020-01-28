@@ -1,14 +1,4 @@
 import React, { Component } from "react";
-import Registry from "./contracts/Registry.json";
-import getWeb3 from "./getWeb3";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
-import Admin from "./Admin"
-import App from "./App"
 import "./App.css";
 
 

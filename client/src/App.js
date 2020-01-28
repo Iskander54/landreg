@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import Registry from "./contracts/Registry.json";
+import Mortgage from "./contracts/Mortgage.json";
 import getWeb3 from "./getWeb3";
 import {
   BrowserRouter as Router,
@@ -7,8 +8,9 @@ import {
   Route,
   Link
 } from "react-router-dom";
-import Mortgage from "./Mortgage";
-import Admin from "./Admin"
+import Buy from "./Mortgage";
+import Admin from "./Admin";
+import Home from "./Home";
 import "./App.css";
 
 
@@ -142,7 +144,7 @@ class App extends Component {
           <nav>
             <ul>
               <li>
-                <Link to="/">Home</Link>
+                <Link to="/Home">Home</Link>
               </li>
               <li>
                 <Link to="/Mortgage">Mortgage</Link>
@@ -154,73 +156,18 @@ class App extends Component {
           </nav>
       <Switch>
         <Route path="/Mortgage">
-        <Mortgage />
+        <Buy web3={this.state.web3} accounts={this.state.accounts} contract={this.state.contract} />
         </Route>
         <Route path="/Admin">
         <Admin web3={this.state.web3} accounts={this.state.accounts} contract={this.state.contract} />
         </Route>
-        <Route path="/">
-            <App />
+        <Route path="/Home">
+        <Home web3={this.state.web3} accounts={this.state.accounts} contract={this.state.contract} />
         </Route>
       </Switch>
       </div>
       </Router>
-        <h1>Good to Go!</h1>
-        <h2>Smart Contract Example</h2>
-        <p>
-          <div><strong>Owner's address</strong> -- <strong>Property Identification Number ({this.state.storageValue})</strong></div>
-          <div>
-   {this.state.properties.map(txt => <p>{txt.owner} -- {this.state.PIN[txt.listPointer]}</p>)}
-</div>
-  
-        </p>
-        <input 
-        type="text" 
-        value={this.state.value}
-        onChange={this.handleChange} />
-        
-
-      <form onSubmit={this.addProperty}>
-        <p>Add a property on sale</p>
-        <label>
-          Owner :
-          <input type="text" value={this.state.add_address} onChange={this.handleChangeAddressAdd} />
-        </label>
-        <label>
-          PIN :
-          <input type="text" value={this.state.add_pin} onChange={this.handleChangePinAdd}/>
-        </label>
-        <input type="submit" value="Add" />
-      </form>
-
-      <form onSubmit={this.updProperty}>
-        <p>Updatea Property sale</p>
-        <label>
-          Owner :
-          <input type="text" value={this.state.upd_address} onChange={this.handleChangeAddressUpd} />
-        </label>
-        <label>
-          PIN :
-          <input type="text" value={this.state.upd_pin} onChange={this.handleChangePinUpd}/>
-        </label>
-        <input type="submit" value="Update" />
-      </form>
-
-      <form onSubmit={this.delProperty}>
-        <p>Delete a Property sale</p>
-        <label>
-          PIN :
-          <input type="text" value={this.state.del_pin} onChange={this.handleChangePinDel}/>
-        </label>
-        <input type="submit" value="Delete" />
-      </form>
-
-      <div>
-
-
-
-      </div>
-      </div>
+   </div>
     );
   }
 }

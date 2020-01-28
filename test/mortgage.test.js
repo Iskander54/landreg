@@ -22,12 +22,12 @@ contract('Mortgage', function (accounts) {
     
 
     it("Unable to confirm a transaction if you are not a party", async () => {
-        const tId = await instance.submitTransaction(bank,client,2,50, 2,98,{value:50})
+        const tId = await instance.submitTransaction(bank,client,2,5, 2,98,{value:5*(10**18)})
         await catchRevert(instance.confirmTransaction(0,{from: accounts[4]}))
     })
 
     it("Client, Bank or Client able to revoke contract ", async () => {
-        const tId = await instance.submitTransaction(bank,client,2,50, 2,98,{value:50})
+        const tId = await instance.submitTransaction(bank,client,2,5, 2,98,{value:5*(10**18)})
         const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
         const proprevoc = await instance.revokeConfirmation(0,{from:prop_owner})
         const clientconfirm = await instance.confirmTransaction(0,{from: client})
@@ -36,12 +36,12 @@ contract('Mortgage', function (accounts) {
 
     it("check that bank has to deposit same amount has in the contract", async () => {
 
-        await catchRevert(instance.submitTransaction(bank,client,2,5000, 2,98,{value : 4999}))
+        await catchRevert(instance.submitTransaction(bank,client,2,5, 2,98,{value : 4}))
     })
 
     it("check that we can get the money in a contract",async()=>{
-        const deposit=50000
-        const tId = await instance.submitTransaction(bank,client,2,deposit,2,98,{value:deposit})
+        const deposit=5*(10**18)
+        const tId = await instance.submitTransaction(bank,client,2,5,2,98,{value:deposit})
         let ball = await instance.getDeposit()
 
         assert.equal(ball,deposit,"we should be able to check how much money the contract holds")
@@ -49,30 +49,30 @@ contract('Mortgage', function (accounts) {
     })
 
     it("Check that the transaction is executed when all parties have sign the transaction", async () => {
-        let actualBalance0 = await web3.eth.getBalance(accounts[0])
-        let actualBalance1 = await web3.eth.getBalance(accounts[1])
-        let actualBalance2 = await web3.eth.getBalance(accounts[2])
-         console.log(actualBalance0, actualBalance1,actualBalance2)
+        let actualBank = await web3.eth.getBalance(accounts[0])
+        let actualClient = await web3.eth.getBalance(accounts[1])
+        let actualPropowner = await web3.eth.getBalance(accounts[2])
+         //console.log(actualBalance0, actualBalance1,actualBalance2)
      
-        const tId = await instance.submitTransaction(bank,client,2,3,2,98,{value:3*(3**18)})
+        const tId = await instance.submitTransaction(bank,client,2,5,2,98,{value:5*(10**18)})
          let ball = await instance.getDeposit()
-         console.log(ball.toNumber())
+         //console.log(ball.toNumber())
          
          const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
          const clientconfirm = await instance.confirmTransaction(0,{from: client})
-         let newBalance0 = await web3.eth.getBalance(accounts[0])
-         let newBalance1 = await web3.eth.getBalance(accounts[1])
-         let newBalance2 = await web3.eth.getBalance(accounts[2])
+         let newBalanceBank = await web3.eth.getBalance(accounts[0])
+         let newBalanceClient = await web3.eth.getBalance(accounts[1])
+         let newBalancePropOwner = await web3.eth.getBalance(accounts[2])
          
-         console.log(newBalance0,newBalance1,newBalance2)
+         //console.log(newBalance0,newBalance1,newBalance2)
          let bal = await instance.getDeposit()
-         console.log(bal.toNumber())
-         let before = parseInt(actualBalance2,10)
-         let after = parseInt(newBalance2,10);
+         //console.log(bal.toNumber())
+         let before = parseInt(actualPropowner,10)
+         let after = parseInt(newBalancePropOwner,10);
          console.log(before,after);
          
  
-         assert.isAbove(before,after, "Balance incorrect!");
+         assert.isAbove(after,before, "Balance incorrect!");
          
          /*
          assert.equal(propconfirm.logs[1].event,"Execution","The transaction should be executed and return true ")
