@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import "./App.css";
 
 
-class Mortgage extends Component {
+class Validate extends Component {
   constructor(props) {
     super(props);
     this.state = { storageValue: null, web3: null, accounts: null,
@@ -19,8 +19,8 @@ class Mortgage extends Component {
 
   render(){
       return(
-      <h1>Mortgage stuff</h1>
+      <h1>Validate</h1>
       )
   }
 }
-export default Mortgage;
+export default Validate;

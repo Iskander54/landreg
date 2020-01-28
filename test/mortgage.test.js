@@ -15,19 +15,20 @@ contract('Mortgage', function (accounts) {
 
 
     beforeEach(async () => {
-        instance = await Mortgage.new(bank,client,prop_owner,3)
+        instance = await Mortgage.new()
         
     })
 
     
 
     it("Unable to confirm a transaction if you are not a party", async () => {
-        const tId = await instance.submitTransaction(bank,client,2,5, 2,98,{value:5*(10**18)})
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,{value:5*(10**18)})
         await catchRevert(instance.confirmTransaction(0,{from: accounts[4]}))
     })
 
     it("Client, Bank or Client able to revoke contract ", async () => {
-        const tId = await instance.submitTransaction(bank,client,2,5, 2,98,{value:5*(10**18)})
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,{value:5*(10**18)})
+        console.log(tId);
         const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
         const proprevoc = await instance.revokeConfirmation(0,{from:prop_owner})
         const clientconfirm = await instance.confirmTransaction(0,{from: client})
@@ -36,32 +37,29 @@ contract('Mortgage', function (accounts) {
 
     it("check that bank has to deposit same amount has in the contract", async () => {
 
-        await catchRevert(instance.submitTransaction(bank,client,2,5, 2,98,{value : 4}))
+        await catchRevert(instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,{value : 4}))
     })
 
     it("check that we can get the money in a contract",async()=>{
+        const initial=await instance.getDeposit()
         const deposit=5*(10**18)
-        const tId = await instance.submitTransaction(bank,client,2,5,2,98,{value:deposit})
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,{value:deposit})
         let ball = await instance.getDeposit()
 
-        assert.equal(ball,deposit,"we should be able to check how much money the contract holds")
+        assert.equal(initial+deposit,ball,"we should be able to check how much money the contract holds")
 
     })
 
     it("Check that the transaction is executed when all parties have sign the transaction", async () => {
-        let actualBank = await web3.eth.getBalance(accounts[0])
-        let actualClient = await web3.eth.getBalance(accounts[1])
         let actualPropowner = await web3.eth.getBalance(accounts[2])
          //console.log(actualBalance0, actualBalance1,actualBalance2)
      
-        const tId = await instance.submitTransaction(bank,client,2,5,2,98,{value:5*(10**18)})
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,{value:5*(10**18)})
          let ball = await instance.getDeposit()
          //console.log(ball.toNumber())
          
          const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
          const clientconfirm = await instance.confirmTransaction(0,{from: client})
-         let newBalanceBank = await web3.eth.getBalance(accounts[0])
-         let newBalanceClient = await web3.eth.getBalance(accounts[1])
          let newBalancePropOwner = await web3.eth.getBalance(accounts[2])
          
          //console.log(newBalance0,newBalance1,newBalance2)

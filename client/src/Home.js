@@ -16,10 +16,6 @@ class Home extends Component {
       index:null,
       properties:[]
       };
-
-    this.addProperty = this.addProperty.bind(this);
-    this.updProperty = this.updProperty.bind(this);
-    this.delProperty = this.delProperty.bind(this);
   }
 
   componentDidMount = async () => {
@@ -48,57 +44,6 @@ class Home extends Component {
     }
     this.setState({properties:test,storageValue: response, PIN:pins});
 
-  }
-
-
-
-  handleChangeAddressAdd = async(event)=> {
-    this.setState({add_address: event.target.value});
-  }
-
-  handleChangePinAdd= async(event)=> {
-    this.setState({add_pin: event.target.value});
-  }
-
-  addProperty = async(event) => {
-    event.preventDefault();
-    const { accounts, contract } = this.state;
-    console.log(this.state.add_address)
-    console.log(this.state.add_pin)
-    const resp = await contract.methods.newProperty(this.state.add_address,this.state.add_pin).send({from:accounts[0]});
-    alert('Property added : ' + resp);
-    this.checkProperties();
-    
-  }
-
-  handleChangeAddressUpd = async(event)=> {
-    this.setState({upd_address: event.target.value});
-  }
-
-  handleChangePinUpd= async(event)=> {
-    this.setState({upd_pin: event.target.value});
-  }
-
-  updProperty = async(event) => {
-    event.preventDefault();
-    const { accounts, contract } = this.state;
-    const resp = await contract.methods.updateProperty(this.state.upd_address,this.state.upd_pin).send({from:accounts[0]});
-    alert('Property updated: ' + resp);
-    this.checkProperties();
-    
-  }
-
-  handleChangePinDel= async(event)=> {
-    this.setState({del_pin: event.target.value});
-  }
-
-  delProperty = async(event) => {
-    event.preventDefault();
-    const { accounts, contract } = this.state;
-    const resp = await contract.methods.deleteProperty(this.state.del_pin).send({from:accounts[0]});
-    alert('Property deleted: ' + resp);
-    this.checkProperties();
-    
   }
 
   render() {

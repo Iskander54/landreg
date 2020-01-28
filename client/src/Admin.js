@@ -1,14 +1,4 @@
 import React, { Component } from "react";
-import Registry from "./contracts/Registry.json";
-import getWeb3 from "./getWeb3";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
-import Mortgage from "./Mortgage"
-import App from "./App"
 import "./App.css";
 
 
@@ -16,7 +6,7 @@ class Admin extends Component {
   constructor(props) {
     super(props);
     this.state = { storageValue: null, web3: null, accounts: null,
-      contract: null,value:null,PIN:null,
+      contract: null,PIN:null,
       add_address:null,
       add_pin:null,
       upd_address:null,
@@ -46,8 +36,6 @@ class Admin extends Component {
     const { accounts, contract } = this.props;
 
     const response = await contract.methods.getPropertyCount().call();
-    this.setState({ form: response });
-    const wesh = await contract.methods.properties(1).call();
     var test=[];
     var pins=[];
     for(var i=0;i<response;i++){
@@ -127,10 +115,6 @@ class Admin extends Component {
 </div>
   
         </p>
-        <input 
-        type="text" 
-        value={this.state.value}
-        onChange={this.handleChange} />
         
 
       <form onSubmit={this.addProperty}>
@@ -147,7 +131,7 @@ class Admin extends Component {
       </form>
 
       <form onSubmit={this.updProperty}>
-        <p>Updatea Property sale</p>
+        <p>Updated Property sale</p>
         <label>
           Owner :
           <input type="text" value={this.state.upd_address} onChange={this.handleChangeAddressUpd} />
