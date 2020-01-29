@@ -32,7 +32,6 @@ contract('Mortgage', function (accounts) {
 
     it("Client, Bank or Client able to revoke contract ", async () => {
         const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,contract_addr,{value:5*(10**18)})
-        console.log(tId);
         const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
         const proprevoc = await instance.revokeConfirmation(0,{from:prop_owner})
         const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
@@ -56,30 +55,22 @@ contract('Mortgage', function (accounts) {
 
     it("Check that the transaction is executed when all parties have sign the transaction", async () => {
         let actualPropowner = await web3.eth.getBalance(accounts[2])
-         //console.log(actualBalance0, actualBalance1,actualBalance2)
      
         const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,contract_addr,{value:5*(10**18)})
          let ball = await instance.getDeposit()
-         //console.log(ball.toNumber())
          
          const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
          const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
          let newBalancePropOwner = await web3.eth.getBalance(accounts[2])
          
-         //console.log(newBalance0,newBalance1,newBalance2)
          let bal = await instance.getDeposit()
-         //console.log(bal.toNumber())
          let before = parseInt(actualPropowner,10)
          let after = parseInt(newBalancePropOwner,10);
-         console.log(before,after);
          
  
          assert.isAbove(after,before, "Balance incorrect!");
          
-         /*
-         assert.equal(propconfirm.logs[1].event,"Execution","The transaction should be executed and return true ")
-         */
- 
+
      })
 
 

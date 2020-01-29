@@ -118,7 +118,7 @@ class Validate extends Component {
           <p>List of Mortgages your confirmed
           <div> Transaction Id-- <strong>Client's address</strong> -- <strong>Property Identification Number -- <strong>Amount</strong> -- <strong>Executed ?</strong>({this.state.confirmed.length})</strong></div>
           <div>{this.state.tidlist}
-   {this.state.confirmed.map(txt =>  <p>{txt.tid} -- {txt.mortgage.beneficiary} -- {txt.mortgage.pin} -- {txt.mortgage.amount} -- {txt.mortgage.executed.toString()}</p>)}</div></p>
+   {this.state.confirmed.map(txt =>  <p style={{color: txt.mortgage.executed === true ?  "green" : "red"  }}>{txt.tid} -- {txt.mortgage.beneficiary} -- {txt.mortgage.pin} -- {txt.mortgage.amount} -- <strong>{txt.mortgage.executed.toString()}</strong></p>)}</div></p>
       
             <form onSubmit={this.revokeTransaction}>
             <p>Validate</p>

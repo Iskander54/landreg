@@ -1,13 +1,23 @@
+import "@openzeppelin/contracts/ownership/Ownable.sol";
 pragma solidity ^0.5.0;
 
-contract Registry{
+contract Registry {
     function updatePropertyFromMortgage(address ownerAddress, uint pin) public returns(bool success);
 }
 
-contract Mortgage {
-    address payable owner;
+contract Mortgage is Ownable {
+    //Variables
     uint ETHER=(10**18);
+    uint public MortgageCount=0;
+    bool public contractPaused = false;
 
+    mapping (uint => address[]) public parties;
+    mapping (uint => mapping(address => bool)) public isParty;
+    mapping (uint => BankContract) public mortgages;
+    mapping (uint => mapping (address => bool)) public confirmations;
+    mapping (address => uint) pendingWithdrawals;
+
+    //Structs
     struct BankContract{
         address bank;
         address beneficiary;
@@ -22,13 +32,7 @@ contract Mortgage {
         bool executed;
     }
 
-    uint public MortgageCount=0;
-    mapping (uint => address[]) public parties;
-    mapping (uint => mapping(address => bool)) public isParty;
-    mapping (uint => BankContract) public mortgages;
-    mapping (uint => mapping (address => bool)) public confirmations;
-    mapping (address => uint) pendingWithdrawals;
-
+    //events
     event Submission(uint indexed transactionId);
     event Deposit(address indexed sender, uint value);
     event Confirmation(address indexed sender, uint indexed transactionId);
@@ -36,10 +40,10 @@ contract Mortgage {
     event Revocation(uint transactionId,address indexed sender);
     event ExecutionFailure(uint indexed transactionId);
 
-
-    modifier validRequirement(uint ownerCount, uint _required) {
-        if (   _required > ownerCount || _required == 0 || ownerCount == 0)
-            revert();
+    //modifiers
+    // If the contract is paused, stop the modified function attached
+    modifier checkIfPaused() {
+        require(contractPaused == false);
         _;
     } 
  
@@ -55,17 +59,25 @@ contract Mortgage {
     }
 
 
-    /*
-     * Public functions
-     */
+
     /// @dev Contract constructor sets initial owners and required number of confirmations.
     constructor() public {
     }
 
+    /// @dev circuitbreaker function that allows to stop the contract for time for any reason
+    function circuitBreaker() public onlyOwner() {
+    if (contractPaused == false) { contractPaused = true; }
+    else { contractPaused = false; }
+}
+
+    /// @dev allows anyone to check the balance of the contract
+    /// @return returns the contract balance
     function getDeposit() public view returns (uint256){
         return address(this).balance;
     }
 
+    /// @dev Allows the contract to give the money to the owner of the property after everybody signed
+    /// @param  transactionId Transaction ID
     function withdraw(uint transactionId) public{
         require(isParty[transactionId][msg.sender],"Only party");
         // against re-entrancy attack 
@@ -75,9 +87,17 @@ contract Mortgage {
     }
 
 
-    /// @dev Allows an owner to submit and confirm a transaction.
+    /// @dev Allows anyone to submit and confirm a transaction.
+    /// @param _bank represent the one that lend money
+    /// @param _beneficiary represent the one whom the money has been lent to
+    /// @param _pin_owner represent the owner of the property that the beneficiary wants to buy
+    /// @param _pin represent the property identification number
+    /// @param _amount represent the nb of ether lent
+    /// @param _rates represent the interest
+    /// @param _length the amount of time the beneficiary has to pay back the _bank
+    /// @param addr the address of the contract that holds the registry
     /// @return Returns transaction ID.
-    function submitTransaction(address _bank,address _beneficiary,address payable _pin_owner, uint _pin, uint _amount,uint _rates, uint _length,address addr) payable public returns (uint transactionId) {
+    function submitTransaction(address _bank,address _beneficiary,address payable _pin_owner, uint _pin, uint _amount,uint _rates, uint _length,address addr) payable public checkIfPaused() returns (uint transactionId) {
 
         BankContract memory trx = BankContract(_bank,_beneficiary,3,
         _pin_owner,_pin,_amount,_rates,_length,false);
@@ -97,7 +117,8 @@ contract Mortgage {
     }
 
         /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
-    /// @return Returns transaction ID.
+        /// @param txx is the bankcontract just initialized 
+        /// @return Returns transaction ID.
     function addTransaction(BankContract memory txx) internal returns (uint transactionId) {
         transactionId = MortgageCount;
         mortgages[transactionId] = txx;
@@ -105,13 +126,16 @@ contract Mortgage {
         emit Submission(transactionId);
     }
 
+    /// @dev Check if the transaction has been executed
+    /// @param transactionId Transaction ID.
     function isExecuted(uint transactionId)public view returns (bool){
         return mortgages[transactionId].executed;
     }
 
     /// @dev Allows an owner to confirm a transaction.
     /// @param transactionId Transaction ID.
-    function confirmTransaction(uint transactionId,address addr) public returns (bool) {
+    /// @param addr is the address of the contract representing the land registry
+    function confirmTransaction(uint transactionId,address addr) public checkIfPaused() {
         require(confirmations[transactionId][msg.sender] == false);
         require(isParty[transactionId][msg.sender]==true);
         confirmations[transactionId][msg.sender] = true;
@@ -130,7 +154,8 @@ contract Mortgage {
 
     /// @dev Allows anyone to execute a confirmed transaction.
     /// @param transactionId Transaction ID.
-    function executeTransaction(uint transactionId,address addr) public payable returns (bool) {
+    /// @param addr is the address of the contract representing the land registry
+    function executeTransaction(uint transactionId,address addr) public payable {
         if (isConfirmed(transactionId)) {
             //pin_owner.transfer(mortgages[transactionId].amount);
             mortgages[transactionId].executed=true;
@@ -143,9 +168,6 @@ contract Mortgage {
         }
     }
 
-        /*
-         * (Possible) Helper Functions
-         */
     /// @dev Returns the confirmation status of a transaction.
     /// @param transactionId Transaction ID.
     /// @return Confirmation status.
@@ -158,29 +180,5 @@ contract Mortgage {
                 return true;
         }
     }
-/*
-    function InitializeContract(address _bank, address _client, address payable _pin_owner, uint _required)public{
-        address[] _parties=[];
-        mapping (address => bool) public _isParty;
-        parties.push(_bank);
-        parties.push(_client);
-        parties.push(_pin_owner);
-        for (uint i=0; i<parties.length; i++) {
-            require(!isParty[parties[i]] && parties[i] != address(0));
-            isParty[parties[i]] = true;
-        }
-        pin_owner =_pin_owner;
-        required = _required;
-        DataContract memory dc = DataContract({
-            isParty: _isParty,
-            parties: _parties,
-            pin_owner: _pin_owner,
-            transactionid:_tid,
-        })
-    }
-*/
-
-
-
 
 }

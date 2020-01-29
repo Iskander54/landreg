@@ -98,7 +98,7 @@ class Admin extends Component {
 
   delProperty = async(event) => {
     event.preventDefault();
-    const { accounts, contract } = this.state;
+    const { accounts, contract } = this.props;
     const resp = await contract.methods.deleteProperty(this.state.del_pin).send({from:accounts[0]});
     alert('Property deleted: ' + resp);
     this.checkProperties();

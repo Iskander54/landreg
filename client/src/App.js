@@ -28,6 +28,7 @@ class App extends Component {
       upd_pin:null,
       del_pin:null,
       index:null,
+      stopper:null,
       properties:[]
       };
 /*
@@ -57,18 +58,23 @@ class App extends Component {
       const instance2 = new web3.eth.Contract(
         Mortgage.abi,deployedNetwork2 && deployedNetwork2.address,
         );
-      this.setState({ web3, accounts, contract: instance, mortgage:instance2,contract_addr:deployedNetwork.address }, this.runExample);
+      this.setState({ web3, accounts, contract: instance, mortgage:instance2, contract_addr:deployedNetwork.address }, this.runExample);
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      console.log("address du registry contrat",deployedNetwork.address)
-      console.log(this.state.contract)
-      console.log("----")
-    
-
   };
 
   runExample = async () => {
+    const {accounts, mortgage} = this.state;
+    const resp = await mortgage.methods.contractPaused().call();
+    this.setState({stopper : resp})
   };
+
+  stopper = async () =>{
+    const {accounts,mortgage } = this.state;
+    const resp = await mortgage.methods.circuitBreaker().send({from:accounts[0]})
+    const cb = await mortgage.methods.contractPaused().call();
+    this.setState({stopper : cb})
+  }
 
 
   render() {
@@ -77,6 +83,7 @@ class App extends Component {
     }
     return (
       <div className="App">
+        <button onClick={this.stopper}><strong><p style={{color: this.state.stopper === false ?  "green" : "red"  }}>Circuit Breaker</p></strong></button>
         <Router>
         <div>
           <nav>

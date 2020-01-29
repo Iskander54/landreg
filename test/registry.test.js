@@ -32,16 +32,7 @@ contract('Registry',function(accounts){
     it("Should add two property to the blockchain and count them",async()=>{
         const before = await instance.getPropertyCount()
         const tx1=await instance.newProperty(alex,5)
-        /*
-        if (tx.logs[0].event == "PropertyAdd") {
-            eventEmitted = true
-            console.log[tx.logs[0].value]
-        }*/
         const tx2=await instance.newProperty(kevin,2)
-        /*
-        if (txx.logs[0].event == "PropertyAdd") {
-            eventEmitted = true
-        }*/
         const nb = await instance.getPropertyCount()
         assert.equal(nb.toNumber(),before.toNumber()+2,'the number of accounts is the same as the number of added accounts')
     })
