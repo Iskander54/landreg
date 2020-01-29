@@ -12,7 +12,6 @@ class Create extends Component {
       upd_address:null,
       upd_pin:null,
       del_pin:null,
-      index:null,
       properties:[],
 
       c_client:null,
@@ -24,7 +23,7 @@ class Create extends Component {
 
       mortgageValue:null,
       mlist:[],
-      tidlist:[]
+
 
       };
   }
@@ -33,29 +32,28 @@ class Create extends Component {
   componentDidMount = async () => {
     this.checkProperties();
     this.checkMortgages();
+    console.log(this.props.contract.ad)
 
 
   };
 
-  runExample = async () => {
-    this.checkProperties();
-  };
 
   checkProperties = async(event)=>{
     const { accounts, contract } = this.props;
 
     const response = await contract.methods.getPropertyCount().call();
-    this.setState({ form: response });
-    const wesh = await contract.methods.properties(1).call();
-    var test=[];
-    var pins=[];
+    var propertylist=[];
     for(var i=0;i<response;i++){
       const index = await contract.methods.propertyList(i).call();
       const mapping = await contract.methods.properties(index).call();
-      test.push(mapping);
-      pins.push(index)
+      var properties = {
+        property:mapping,
+        pin:index
+      }
+      propertylist.push(properties);
     }
-    this.setState({properties:test,storageValue: response, PIN:pins});
+    console.log(propertylist)
+    this.setState({properties:propertylist,storageValue: response});
 
   }
 
@@ -86,8 +84,7 @@ class Create extends Component {
   createTransaction = async(event)=>{
     event.preventDefault();
     const {accounts,mortgage} = this.props;
-
-    const resp = await mortgage.methods.submitTransaction(accounts[0],this.state.c_client,this.state.c_owner,this.state.c_pin,this.state.c_amount,this.state.c_rates,this.state.c_length).send({from:accounts[0],value:this.state.c_amount*(10**18)})
+    const resp = await mortgage.methods.submitTransaction(accounts[0],this.state.c_client,this.state.c_owner,this.state.c_pin,this.state.c_amount,this.state.c_rates,this.state.c_length,this.props.contract_addr).send({from:accounts[0],value:this.state.c_amount*(10**18)})
     this.checkMortgages();
   }
 
@@ -99,11 +96,15 @@ class Create extends Component {
     const tid=[]
     for(var i=0;i<count;i++){
       const mapping = await mortgage.methods.mortgages(i).call();
-      morts.push(mapping)
-      tid.push(i)
-      console.log(mapping.executed);
+      var mort ={
+        mortgage: mapping,
+        tid: i
+      }
+      morts.push(mort);
+      console.log(morts[0]);
+      console.log(morts[0].mortgage.bank);
     }
-    this.setState({mlist:morts,tidlist:tid});
+    this.setState({mlist:morts});
   }
 
   render() {
@@ -117,12 +118,14 @@ class Create extends Component {
         <p>List of registered properties
           <div><strong>Owner's address</strong> -- <strong>Property Identification Number ({this.state.storageValue})</strong></div>
           <div>
-   {this.state.properties.map(txt => <p>{txt.owner} -- {this.state.PIN[txt.listPointer]}</p>)}</div></p>
+   {this.state.properties.map(txt => <p>{txt.property.owner} 
+   -- {txt.pin}</p>)}</div></p>
 
    <p>List of Mortgages
           <div> Transaction Id-- <strong>Client's address</strong> -- <strong>Property Identification Number -- <strong>Amount</strong> -- <strong>Executed ?</strong>({this.state.mortgageValue})</strong></div>
-          <div>{this.state.tidlist}
-   {this.state.mlist.map(txt => <p>{txt.beneficiary} -- {txt.pin} -- {txt.amount} -- {txt.executed.toString()}</p>)}</div></p>
+          <div>
+   {this.state.mlist.map(txt => <p>{txt.tid} -- {txt.mortgage.beneficiary} -- {txt.mortgage.pin} -- 
+   {txt.mortgage.amount} -- {txt.mortgage.executed.toString()}</p>)}</div></p>
 
    <form onSubmit={this.createTransaction}>
         <p>Add a property on sale</p>

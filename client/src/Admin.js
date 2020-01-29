@@ -12,7 +12,6 @@ class Admin extends Component {
       upd_address:null,
       upd_pin:null,
       del_pin:null,
-      index:null,
       properties:[]
       };
 
@@ -23,28 +22,31 @@ class Admin extends Component {
   }
 
   componentDidMount = async () => {
+    const {accounts,contract} = this.props;
     this.checkProperties();
+    contract.events.LogNewProperty({fromBlock:0},function(error,event)
+    {console.log(event.returnValues._owner);})
+    
     
 
-  };
-
-  runExample = async () => {
-    this.checkProperties();
   };
 
   checkProperties = async(event)=>{
     const { accounts, contract } = this.props;
 
     const response = await contract.methods.getPropertyCount().call();
-    var test=[];
-    var pins=[];
+    var propertylist=[];
     for(var i=0;i<response;i++){
       const index = await contract.methods.propertyList(i).call();
       const mapping = await contract.methods.properties(index).call();
-      test.push(mapping);
-      pins.push(index)
+      var properties = {
+        property:mapping,
+        pin:index
+      }
+      propertylist.push(properties);
     }
-    this.setState({properties:test,storageValue: response, PIN:pins});
+    console.log(propertylist)
+    this.setState({properties:propertylist,storageValue: response});
 
   }
 
@@ -80,9 +82,13 @@ class Admin extends Component {
   updProperty = async(event) => {
     event.preventDefault();
     const { accounts, contract } = this.props;
+    try{
     const resp = await contract.methods.updateProperty(this.state.upd_address,this.state.upd_pin).send({from:accounts[0]});
     alert('Property updated: ' + resp);
     this.checkProperties();
+    } catch(e){
+      console.log(e)
+    }
     
   }
 
@@ -111,7 +117,7 @@ class Admin extends Component {
         <p>
           <div><strong>Owner's address</strong> -- <strong>Property Identification Number ({this.state.storageValue})</strong></div>
           <div>
-   {this.state.properties.map(txt => <p>{txt.owner} -- {this.state.PIN[txt.listPointer]}</p>)}
+   {this.state.properties.map(txt => <p>{txt.property.owner} -- {txt.pin}</p>)}
 </div>
   
         </p>

@@ -24,7 +24,7 @@ address public owner;
 
 constructor() public{
   owner=msg.sender;
-  properties[1].owner = 0xdfde02443BB07858A44b917c74344e8AD6273CCc;
+  properties[1].owner = 0xDf7064894A0da6b741b86104af7875647b7767A3;
   properties[1].listPointer = propertyList.push(1)-1;
 }
 
@@ -64,8 +64,18 @@ constructor() public{
     emit LogUpdateProperty(oldOwner,ownerAddress);
     return true;
   }
+
+  /* Function that allows to change the owner of a property */
+  function updatePropertyFromMortgage(address ownerAddress, uint pin) public returns(bool success) {
+    require(isProperty(pin)!=address(0),"This PIN doens't exist or no property on the blockchain");
+    address oldOwner=properties[pin].owner;
+    properties[pin].owner = ownerAddress;
+    emit LogUpdateProperty(oldOwner,ownerAddress);
+    return true;
+  }
+
 /*function that allow to delete a property on the blockchain */
-  function deleteProperty(uint pin) public isPropertyOwner(pin) returns(bool success) {
+  function deleteProperty(uint pin) public isContractOwner(pin) returns(bool success) {
     require(properties[pin].owner!=address(0),"This PIN doens't exist");
     uint rowToDelete = properties[pin].listPointer;
     uint keyToMove   = propertyList[propertyList.length-1];

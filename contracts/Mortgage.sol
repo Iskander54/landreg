@@ -1,5 +1,9 @@
 pragma solidity ^0.5.0;
 
+contract Registry{
+    function updatePropertyFromMortgage(address ownerAddress, uint pin) public returns(bool success);
+}
+
 contract Mortgage {
     address payable owner;
     uint ETHER=(10**18);
@@ -73,37 +77,7 @@ contract Mortgage {
 
     /// @dev Allows an owner to submit and confirm a transaction.
     /// @return Returns transaction ID.
-    function submitTransaction(address _bank,address _beneficiary,address payable _pin_owner, uint _pin, uint _amount,uint _rates, uint _length) payable public returns (uint transactionId) {
-        //address[3] memory _parties = [_bank,_beneficiary,_pin_owner];
-        /*
-        BankContract storage trx = BankContract({
-            bank: _bank,
-            beneficiary: _beneficiary,
-            parties: [_bank,_beneficiary,_pin_owner],
-            pin_owner: _pin_owner,
-            required:3,
-            pin:_pin,
-            amount: _amount,
-            rates: _rates,
-            length: _length,
-            executed: false
-        });
-        BankContract storage trx;
-    
-        trx.bank=_bank;
-        trx.beneficiary= _beneficiary;
-        trx.parties=new address[](0);
-        trx.parties.push(_bank);
-        trx.parties.push(_beneficiary);
-        trx.parties.push(_pin_owner);
-        trx.pin_owner= _pin_owner;
-        trx.required=3;
-        trx.pin=_pin;
-        trx.amount= _amount;
-        trx.rates= _rates;
-        trx.length= _length;
-        trx.executed= false;
-        */
+    function submitTransaction(address _bank,address _beneficiary,address payable _pin_owner, uint _pin, uint _amount,uint _rates, uint _length,address addr) payable public returns (uint transactionId) {
 
         BankContract memory trx = BankContract(_bank,_beneficiary,3,
         _pin_owner,_pin,_amount,_rates,_length,false);
@@ -118,7 +92,7 @@ contract Mortgage {
         pendingWithdrawals[_pin_owner]=_amount*ETHER;
         require(msg.value == _amount*ETHER,"The sender has to deposit the exact price of the loan in the contract");
         address(this).transfer(_amount*ETHER);
-        confirmTransaction(transactionId);
+        confirmTransaction(transactionId,addr);
         return transactionId;
     }
 
@@ -137,12 +111,12 @@ contract Mortgage {
 
     /// @dev Allows an owner to confirm a transaction.
     /// @param transactionId Transaction ID.
-    function confirmTransaction(uint transactionId) public returns (bool) {
+    function confirmTransaction(uint transactionId,address addr) public returns (bool) {
         require(confirmations[transactionId][msg.sender] == false);
         require(isParty[transactionId][msg.sender]==true);
         confirmations[transactionId][msg.sender] = true;
         emit Confirmation(msg.sender, transactionId);
-        executeTransaction(transactionId);
+        executeTransaction(transactionId,addr);
     }
 
     /// @dev Allows an owner to revoke a confirmation for a transaction.
@@ -156,12 +130,14 @@ contract Mortgage {
 
     /// @dev Allows anyone to execute a confirmed transaction.
     /// @param transactionId Transaction ID.
-    function executeTransaction(uint transactionId) public payable returns (bool) {
+    function executeTransaction(uint transactionId,address addr) public payable returns (bool) {
         if (isConfirmed(transactionId)) {
             //pin_owner.transfer(mortgages[transactionId].amount);
             mortgages[transactionId].executed=true;
             emit Execution(transactionId);
             withdraw(transactionId);
+            Registry r = Registry(addr);
+            r.updatePropertyFromMortgage(mortgages[transactionId].beneficiary,mortgages[transactionId].pin);
         }else{
             emit ExecutionFailure(transactionId);
         }

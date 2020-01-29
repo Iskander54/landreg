@@ -21,7 +21,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = { storageValue: null, web3: null, accounts: null,
-      contract: null,mortgage:null,value:null,PIN:null,
+      contract: null,contract_addr:null,mortgage:null,value:null,PIN:null,
       add_address:null,
       add_pin:null,
       upd_address:null,
@@ -57,10 +57,12 @@ class App extends Component {
       const instance2 = new web3.eth.Contract(
         Mortgage.abi,deployedNetwork2 && deployedNetwork2.address,
         );
-      this.setState({ web3, accounts, contract: instance, mortgage:instance2 }, this.runExample);
+      this.setState({ web3, accounts, contract: instance, mortgage:instance2,contract_addr:deployedNetwork.address }, this.runExample);
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      console.log(accounts[0])
+      console.log("address du registry contrat",deployedNetwork.address)
+      console.log(this.state.contract)
+      console.log("----")
     
 
   };
@@ -95,10 +97,10 @@ class App extends Component {
           </nav>
       <Switch>
         <Route path="/create">
-        <Create web3={this.state.web3} accounts={this.state.accounts} contract={this.state.contract} mortgage={this.state.mortgage} />
+        <Create web3={this.state.web3} accounts={this.state.accounts} contract={this.state.contract} mortgage={this.state.mortgage} contract_addr={this.state.contract_addr} />
         </Route>
         <Route path="/validate">
-        <Validate web3={this.state.web3} accounts={this.state.accounts} contract={this.state.contract} mortgage={this.state.mortgage} />
+        <Validate web3={this.state.web3} accounts={this.state.accounts} contract={this.state.contract} mortgage={this.state.mortgage} contract_addr={this.state.contract_addr} />
         </Route>
         <Route path="/Admin">
         <Admin web3={this.state.web3} accounts={this.state.accounts} contract={this.state.contract} />
