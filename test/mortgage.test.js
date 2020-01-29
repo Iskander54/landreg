@@ -1,6 +1,7 @@
 // The public file for automated testing can be found here: https://gist.github.com/ConsenSys-Academy/e9ec0d8d6c53b56ca9673cfa139b5644
 
 var Mortgage = artifacts.require('Mortgage')
+var Registry = artifacts.require('Registry')
 let catchRevert = require("./utils/exceptionsHelpers.js").catchRevert
 const helper = require('./utils/utils.js');
 
@@ -16,37 +17,40 @@ contract('Mortgage', function (accounts) {
 
     beforeEach(async () => {
         instance = await Mortgage.new()
+        Reg = await Registry.new()
+        contract_addr = Reg.address
+        resp = await Reg.newProperty(prop_owner,2)
         
     })
 
     
 
     it("Unable to confirm a transaction if you are not a party", async () => {
-        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,{value:5*(10**18)})
-        await catchRevert(instance.confirmTransaction(0,{from: accounts[4]}))
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,contract_addr,{value:5*(10**18)})
+        await catchRevert(instance.confirmTransaction(0,contract_addr,{from: accounts[4]}))
     })
 
     it("Client, Bank or Client able to revoke contract ", async () => {
-        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,{value:5*(10**18)})
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,contract_addr,{value:5*(10**18)})
         console.log(tId);
-        const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
+        const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
         const proprevoc = await instance.revokeConfirmation(0,{from:prop_owner})
-        const clientconfirm = await instance.confirmTransaction(0,{from: client})
+        const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
         assert.equal(clientconfirm.logs[1].event,"ExecutionFailure","Transaction shouldn't be confirmed")
     })
 
     it("check that bank has to deposit same amount has in the contract", async () => {
 
-        await catchRevert(instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,{value : 4}))
+        await catchRevert(instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,contract_addr,{value : 4}))
     })
 
     it("check that we can get the money in a contract",async()=>{
-        const initial=await instance.getDeposit()
+        const initial=parseInt(await instance.getDeposit(),10)
         const deposit=5*(10**18)
-        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,{value:deposit})
-        let ball = await instance.getDeposit()
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,contract_addr,{value:deposit})
+        let ball = parseInt(await instance.getDeposit(),10)
 
-        assert.equal(initial+deposit,ball,"we should be able to check how much money the contract holds")
+        assert.equal(initial+parseInt(deposit,10),ball,"we should be able to check how much money the contract holds")
 
     })
 
@@ -54,12 +58,12 @@ contract('Mortgage', function (accounts) {
         let actualPropowner = await web3.eth.getBalance(accounts[2])
          //console.log(actualBalance0, actualBalance1,actualBalance2)
      
-        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,{value:5*(10**18)})
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,contract_addr,{value:5*(10**18)})
          let ball = await instance.getDeposit()
          //console.log(ball.toNumber())
          
-         const propconfirm = await instance.confirmTransaction(0,{from: prop_owner})
-         const clientconfirm = await instance.confirmTransaction(0,{from: client})
+         const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
+         const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
          let newBalancePropOwner = await web3.eth.getBalance(accounts[2])
          
          //console.log(newBalance0,newBalance1,newBalance2)
