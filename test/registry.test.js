@@ -17,8 +17,7 @@ contract('Registry',function(accounts){
     })
 
     it("Checking property should be able only when there is more than one",async()=>{
-
-        
+        await instance.deleteProperty(1)
         await catchRevert(instance.isProperty(2))
     })
 
@@ -47,19 +46,19 @@ contract('Registry',function(accounts){
         assert.equal(checkUpdate,kevin,"The property hasnt changed owner")
     })
 
-    it("Delete a property by not the owner that has been added ",async()=>{
+    it("Trying to delete a property when you not the owner of the contract",async()=>{
         const add=await instance.newProperty(kevin,3)
         const checkAdded= await instance.isProperty(3)
         await catchRevert(instance.deleteProperty(3,{from: yann}))
         
     })
 
-    it("Delete a property that has been added by the owner ",async()=>{
+    it("Delete a property by the owner of the contract ",async()=>{
         const add=await instance.newProperty(kevin,3)
         const before= await instance.getPropertyCount()
         const checkAdded= await instance.isProperty(3)
         if(checkAdded==kevin){
-            const update=await instance.deleteProperty(3,{from:kevin})
+            const update=await instance.deleteProperty(3,{from:alex})
         }
         const nb = await instance.getPropertyCount()
         assert.equal(nb.toNumber(),before.toNumber()-1,"The deleteProperty is called by the owner and should be deleted")

@@ -29,7 +29,8 @@ class App extends Component {
       del_pin:null,
       index:null,
       stopper:null,
-      properties:[]
+      properties:[],
+      user:null
       };
 /*
     module.exports = function(deployer){
@@ -58,20 +59,21 @@ class App extends Component {
       const instance2 = new web3.eth.Contract(
         Mortgage.abi,deployedNetwork2 && deployedNetwork2.address,
         );
-      this.setState({ web3, accounts, contract: instance, mortgage:instance2, contract_addr:deployedNetwork.address }, this.runExample);
+      this.setState({ web3, accounts, contract: instance, mortgage:instance2, contract_addr:deployedNetwork.address,user:accounts[0] }, this.runExample);
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
+      console.log(Registry)
   };
 
   runExample = async () => {
-    const {accounts, mortgage} = this.state;
+    const {mortgage} = this.state;
     const resp = await mortgage.methods.contractPaused().call();
     this.setState({stopper : resp})
   };
 
   stopper = async () =>{
     const {accounts,mortgage } = this.state;
-    const resp = await mortgage.methods.circuitBreaker().send({from:accounts[0]})
+    await mortgage.methods.circuitBreaker().send({from:accounts[0]})
     const cb = await mortgage.methods.contractPaused().call();
     this.setState({stopper : cb})
   }
@@ -84,6 +86,7 @@ class App extends Component {
     return (
       <div className="App">
         <button onClick={this.stopper}><strong><p style={{color: this.state.stopper === false ?  "green" : "red"  }}>Circuit Breaker</p></strong></button>
+        <h2>{this.state.user} : {this.state.user === "0x42CAD0CA3716b4664c2658A0a48664369D511C54"? "Contracts owner" : "User"}</h2>
         <Router>
         <div>
           <nav>

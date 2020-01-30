@@ -24,10 +24,18 @@ contract('Mortgage', function (accounts) {
     })
 
     
-
+/*
     it("Unable to confirm a transaction if you are not a party", async () => {
         const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,contract_addr,{value:5*(10**18)})
         await catchRevert(instance.confirmTransaction(0,contract_addr,{from: accounts[4]}))
+    })
+    */
+
+    it("Circuit Breaker working", async () =>{
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,contract_addr,{value:5*(10**18)})
+        await instance.circuitBreaker()
+        await catchRevert(instance.confirmTransaction(0,contract_addr,{from: prop_owner}))
+
     })
 
     it("Client, Bank or Client able to revoke contract ", async () => {

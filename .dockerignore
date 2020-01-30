@@ -1,0 +1,13 @@
+test
+tmp
+node_modules
+git
+Dockerfile
+LICENSE
+build
+client/build
+client/node_modules
+client/README.md
+client/yarn.lock
+# client/package.lock
+client/.gitignore

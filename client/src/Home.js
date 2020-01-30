@@ -29,11 +29,10 @@ class Home extends Component {
   };
 
   checkProperties = async(event)=>{
-    const { accounts, contract } = this.props;
+    const {contract } = this.props;
 
     const response = await contract.methods.getPropertyCount().call();
     this.setState({ form: response });
-    const wesh = await contract.methods.properties(1).call();
     var test=[];
     var pins=[];
     for(var i=0;i<response;i++){
@@ -53,7 +52,7 @@ class Home extends Component {
     return (
       <div className="Home">
         <h1>Welcome to Land Registry Blockchain</h1>
-        <h2>This dApp allows you to deal with you land registry based on smart contracts</h2>
+        <h2>This dApp allows you to deal with your land registry based on smart contracts</h2>
         <p>List of registered properties
           <div><strong>Owner's address</strong> -- <strong>Property Identification Number ({this.state.storageValue})</strong></div>
           <div>

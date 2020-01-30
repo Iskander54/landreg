@@ -21,7 +21,7 @@ class Validate extends Component {
   }
 
   componentDidMount = async () => {
-    const {accounts,mortgage} = this.props;
+    const {accounts} = this.props;
     await this.checkMortgages();
     const _confirmed=[]
     const _isparty=[]
@@ -39,11 +39,10 @@ class Validate extends Component {
   };
 
   checkMortgages = async(event)=>{
-    const {accounts,mortgage} = this.props;
+    const {mortgage} = this.props;
     const count = await mortgage.methods.MortgageCount().call();
     this.setState({mortgageValue:count});
     const morts=[]
-    const tid=[]
     for(var i=0;i<count;i++){
       const mapping = await mortgage.methods.mortgages(i).call();
       var mort ={
@@ -58,13 +57,13 @@ class Validate extends Component {
 
 
   isParty = async(tid,account)=>{
-    const {accounts,mortgage} = this.props;
+    const {mortgage} = this.props;
     const resp = await mortgage.methods.isParty(tid,account).call();
     return resp
   }
 
   hasConfirmed = async(tid,account)=>{
-    const {accounts,mortgage} = this.props;
+    const {mortgage} = this.props;
     const resp = await mortgage.methods.confirmations(tid,account).call();
     return resp
   }
@@ -74,14 +73,14 @@ class Validate extends Component {
     const {accounts,mortgage} =this.props;
     console.log(this.state.confirmtid);
     console.log(accounts[0])
-    const resp = await mortgage.methods.confirmTransaction(this.state.confirmtid,this.props.contract_addr).send({from:accounts[0]})
+    await mortgage.methods.confirmTransaction(this.state.confirmtid,this.props.contract_addr).send({from:accounts[0]})
     window.location.reload();
   }
 
   revokeTransaction = async(event) =>{
     event.preventDefault();
     const {accounts,mortgage} =this.props;
-    const resp = await mortgage.methods.revokeConfirmation(this.state.revoketid).send({from:accounts[0]})
+    await mortgage.methods.revokeConfirmation(this.state.revoketid).send({from:accounts[0]})
     window.location.reload();
   }
 

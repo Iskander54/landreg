@@ -39,7 +39,7 @@ class Create extends Component {
 
 
   checkProperties = async(event)=>{
-    const { accounts, contract } = this.props;
+    const {contract } = this.props;
 
     const response = await contract.methods.getPropertyCount().call();
     var propertylist=[];
@@ -84,16 +84,15 @@ class Create extends Component {
   createTransaction = async(event)=>{
     event.preventDefault();
     const {accounts,mortgage} = this.props;
-    const resp = await mortgage.methods.submitTransaction(accounts[0],this.state.c_client,this.state.c_owner,this.state.c_pin,this.state.c_amount,this.state.c_rates,this.state.c_length,this.props.contract_addr).send({from:accounts[0],value:this.state.c_amount*(10**18)})
+    await mortgage.methods.submitTransaction(accounts[0],this.state.c_client,this.state.c_owner,this.state.c_pin,this.state.c_amount,this.state.c_rates,this.state.c_length,this.props.contract_addr).send({from:accounts[0],value:this.state.c_amount*(10**18)})
     this.checkMortgages();
   }
 
   checkMortgages = async(event)=>{
-    const {accounts,mortgage} = this.props;
+    const {mortgage} = this.props;
     const count = await mortgage.methods.MortgageCount().call();
     this.setState({mortgageValue:count});
     const morts=[]
-    const tid=[]
     for(var i=0;i<count;i++){
       const mapping = await mortgage.methods.mortgages(i).call();
       var mort ={
@@ -114,7 +113,6 @@ class Create extends Component {
     return (
       <div className="Home">
         <h1>Here the bank can create a mortgage transaction</h1>
-        <h2></h2>
         <p>List of registered properties
           <div><strong>Owner's address</strong> -- <strong>Property Identification Number ({this.state.storageValue})</strong></div>
           <div>

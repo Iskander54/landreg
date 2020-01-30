@@ -22,7 +22,7 @@ class Admin extends Component {
   }
 
   componentDidMount = async () => {
-    const {accounts,contract} = this.props;
+    const {contract} = this.props;
     this.checkProperties();
     contract.events.LogNewProperty({fromBlock:0},function(error,event)
     {console.log(event.returnValues._owner);})
@@ -32,7 +32,7 @@ class Admin extends Component {
   };
 
   checkProperties = async(event)=>{
-    const { accounts, contract } = this.props;
+    const {contract } = this.props;
 
     const response = await contract.methods.getPropertyCount().call();
     var propertylist=[];
@@ -113,7 +113,6 @@ class Admin extends Component {
     
       <div className="Admin">
         <h1>Admin</h1>
-        <h2>{this.props.accounts[0]}</h2>
         <p>
           <div><strong>Owner's address</strong> -- <strong>Property Identification Number ({this.state.storageValue})</strong></div>
           <div>
@@ -124,7 +123,7 @@ class Admin extends Component {
         
 
       <form onSubmit={this.addProperty}>
-        <p>Add a property on sale</p>
+        <p>Add Property </p>
         <label>
           Owner :
           <input type="text" value={this.state.add_address} onChange={this.handleChangeAddressAdd} />
@@ -135,9 +134,10 @@ class Admin extends Component {
         </label>
         <input type="submit" value="Add" />
       </form>
-
+      <br></br>
+      <br></br>
       <form onSubmit={this.updProperty}>
-        <p>Updated Property sale</p>
+        <p>Updated Property (only Owner) </p>
         <label>
           Owner :
           <input type="text" value={this.state.upd_address} onChange={this.handleChangeAddressUpd} />
@@ -148,9 +148,11 @@ class Admin extends Component {
         </label>
         <input type="submit" value="Update" />
       </form>
+      <br></br>
+      <br></br>
 
       <form onSubmit={this.delProperty}>
-        <p>Delete a Property sale</p>
+        <p>Delete Property (only Owner) </p>
         <label>
           PIN :
           <input type="text" value={this.state.del_pin} onChange={this.handleChangePinDel}/>
