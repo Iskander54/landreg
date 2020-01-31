@@ -93,6 +93,7 @@ constructor() public{
     require(properties[pin].owner!=address(0),"This PIN doens't exist");
     uint rowToDelete = properties[pin].listPointer;
     uint keyToMove   = propertyList[propertyList.length-1];
+    properties[pin].owner=address(0);
     propertyList[rowToDelete] = keyToMove;
     properties[keyToMove].listPointer = rowToDelete;
     propertyList.length--;
