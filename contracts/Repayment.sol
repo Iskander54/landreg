@@ -9,7 +9,8 @@ contract Repayment{
     uint originalamount;
     uint rates;
     uint length;
-    uint balance; 
+    uint balance;
+    uint pin; 
 
     uint missedPayment=0;
     uint256 paymentPeriod = 7 days;
@@ -35,12 +36,13 @@ contract Repayment{
 
     function calculateComponents(uint256 amount)internal view{
         interest = mul(balance,rates)
-        require(amount>=interest);
+        require(amount>=interest,"The minimun payment is the interest per period");
         principal = amount - interest;
         return (interest,principal)
     }
 
-    function minimumPayment() public{
+    function minimumPayment() public view {
+        return mul(balance,rates)
 
     }
 
@@ -51,17 +53,29 @@ contract Repayment{
 
 
     function makePayment() public {
+        if(now>dueDate){
+            MissedPayment()
+        }else{
+        uint256 interest;
+        uint256 principal;
+        (interest,principal) = calculatePrincipal(msg.value);
+        require(principal<=remainingBalance,"You can't pay more than what you owe");
+        processPeriod(principal)
+        }
 
     }
 
-    function checkMissedPayment() public{
+    function MissedPayment() public{
         requires(now>dueDate);
         if(missedPayment<4){
             interest = mul(balance,rates)
-            fees = div(missedPayment,10)
+            fees = div(missedPayment,100)
             penalty = mul(fees,interest )
+            missedPayment+=1
+            return(interest,penalty)
         }else{
             cancelLoan();
+            return 0
         }
         
         
@@ -69,6 +83,8 @@ contract Repayment{
     }
 
     function cancelLoan() public {
+        Registry r = Registry(addr);
+        r.updatePropertyFromMortgage(creditor,pin);
 
     }
 
