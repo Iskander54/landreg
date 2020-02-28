@@ -2,7 +2,7 @@ import "@openzeppelin/contracts/ownership/Ownable.sol";
 pragma solidity ^0.5.0;
 
 contract Registry {
-    function updatePropertyFromMortgage(address ownerAddress, uint pin) public returns(bool success);
+    function updatePropertyFromAdmin(address ownerAddress, uint pin) public returns(bool success);
 }
 
 contract Mortgage is Ownable {
@@ -162,7 +162,7 @@ contract Mortgage is Ownable {
             emit Execution(transactionId);
             withdraw(transactionId);
             Registry r = Registry(addr);
-            r.updatePropertyFromMortgage(mortgages[transactionId].beneficiary,mortgages[transactionId].pin);
+            r.updatePropertyFromAdmin(mortgages[transactionId].beneficiary,mortgages[transactionId].pin);
         }else{
             emit ExecutionFailure(transactionId);
         }

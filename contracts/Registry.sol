@@ -1,9 +1,11 @@
 import "@openzeppelin/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts/access/Roles.sol";
 pragma solidity ^0.5.0;
 
 /* The Registry contract keeps track of the land registry of the city. Every house should be registered in this contract */
 
 contract Registry is Ownable {
+  using Roles for Roles.Role;
 
 //address public owner;
 /* Data model that allows me to have a stucts with delete and index */
@@ -12,6 +14,8 @@ contract Registry is Ownable {
     uint listPointer;
   }
 
+  Roles.Role administrator;
+
   //variables
   mapping(uint => Property) public properties;
   uint[] public propertyList;
@@ -19,7 +23,12 @@ contract Registry is Ownable {
   //events
   event LogNewProperty(uint _pin, address _owner);
   event LogDeleteProperty(uint _pin);
-  event LogUpdateProperty(address _oldOwner,address _newOwner);
+  event LogUpdateProperty(address _oldOwner,address _newOwner,address sender);
+
+  modifier isAdmin(address check) {
+    require(administrator.has(check),"Sender must be an administrator");
+    _;
+  }
 
 
 constructor() public{
@@ -32,6 +41,14 @@ constructor() public{
     return propertyList;
   }
 
+  function addAdminRoles(address _admin) public onlyOwner() {
+            administrator.add(_admin);
+    }
+
+    function isRole(address check) public returns(bool){
+      return administrator.has(check);
+    }
+
   /// @dev check if a PIN (property identification number) exists 
   /// @param pin which is the pin
   /// @return the owner of this pin if it exists
@@ -43,6 +60,7 @@ constructor() public{
          return address(0);
      } 
   }
+
 
     /// @dev Check the number of property on the blockchain 
     /// @return the number of property on the blockchain
@@ -70,7 +88,7 @@ constructor() public{
     require(isProperty(pin)!=address(0),"This PIN doens't exist or no property on the blockchain");
     address oldOwner=properties[pin].owner;
     properties[pin].owner = ownerAddress;
-    emit LogUpdateProperty(oldOwner,ownerAddress);
+    emit LogUpdateProperty(oldOwner,ownerAddress,msg.sender);
     return true;
   }
 
@@ -78,11 +96,11 @@ constructor() public{
   /// @param ownerAddress is the owner of the property
   /// @param pin is the corresponding pin
   /// @return true to notify everything went well
-  function updatePropertyFromMortgage(address ownerAddress, uint pin) public returns(bool success) {
+  function updatePropertyFromAdmin(address ownerAddress, uint pin) public isAdmin(msg.sender) returns(bool success) {
     require(isProperty(pin)!=address(0),"This PIN doens't exist or no property on the blockchain");
     address oldOwner=properties[pin].owner;
     properties[pin].owner = ownerAddress;
-    emit LogUpdateProperty(oldOwner,ownerAddress);
+    emit LogUpdateProperty(oldOwner,ownerAddress,msg.sender);
     return true;
   }
 
