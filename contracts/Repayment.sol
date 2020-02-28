@@ -33,6 +33,7 @@ contract Repayment{
     constructor(
         address payable _creditor,
         address _creditee,
+        uint256 tid,
         uint256 _originalamount,
         uint256 _rates,
         uint256 _length,

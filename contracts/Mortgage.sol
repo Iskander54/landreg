@@ -1,15 +1,16 @@
 import "@openzeppelin/contracts/ownership/Ownable.sol";
+import "./Repayment.sol";
 pragma solidity ^0.5.0;
 
-contract Registry {
-    function updatePropertyFromAdmin(address ownerAddress, uint pin) public returns(bool success);
-}
+
+
 
 contract Mortgage is Ownable {
     //Variables
     uint ETHER=(10**18);
     uint public MortgageCount=0;
     bool public contractPaused = false;
+    address[] public repayments;
 
     mapping (uint => address[]) public parties;
     mapping (uint => mapping(address => bool)) public isParty;
@@ -19,8 +20,8 @@ contract Mortgage is Ownable {
 
     //Structs
     struct BankContract{
-        address bank;
-        address beneficiary;
+        address payable bank;
+        address payable beneficiary;
         //mapping (address => bool) isParty;
         uint required;
         //address[] parties;
@@ -39,6 +40,7 @@ contract Mortgage is Ownable {
     event Execution(uint indexed transactionId);
     event Revocation(uint transactionId,address indexed sender);
     event ExecutionFailure(uint indexed transactionId);
+    event CreateRepaymentContract(address addr);
 
     //modifiers
     // If the contract is paused, stop the modified function attached
@@ -97,7 +99,7 @@ contract Mortgage is Ownable {
     /// @param _length the amount of time the beneficiary has to pay back the _bank
     /// @param addr the address of the contract that holds the registry
     /// @return Returns transaction ID.
-    function submitTransaction(address _bank,address _beneficiary,address payable _pin_owner, uint _pin, uint _amount,uint _rates, uint _length,address addr) payable public checkIfPaused() returns (uint transactionId) {
+    function submitTransaction(address payable _bank,address payable _beneficiary,address payable _pin_owner, uint _pin, uint _amount,uint _rates, uint _length,address addr) payable public checkIfPaused() returns (uint transactionId) {
 
         BankContract memory trx = BankContract(_bank,_beneficiary,3,
         _pin_owner,_pin,_amount,_rates,_length,false);
@@ -152,6 +154,17 @@ contract Mortgage is Ownable {
         emit Revocation(transactionId,msg.sender);
     }
 
+    function createRepayment(uint tId,address addr)internal returns(address){
+        Repayment repay = new Repayment(mortgages[tId].bank,mortgages[tId].beneficiary,
+        tId,
+        mortgages[tId].amount,mortgages[tId].rates,
+        mortgages[tId].length,addr,mortgages[tId].pin);
+        repayments.push(address(repay));
+        emit CreateRepaymentContract(address(repay));
+        return address(repay);
+
+    }
+
     /// @dev Allows anyone to execute a confirmed transaction.
     /// @param transactionId Transaction ID.
     /// @param addr is the address of the contract representing the land registry
@@ -162,6 +175,7 @@ contract Mortgage is Ownable {
             emit Execution(transactionId);
             withdraw(transactionId);
             Registry r = Registry(addr);
+            createRepayment(transactionId,addr);
             r.updatePropertyFromAdmin(mortgages[transactionId].beneficiary,mortgages[transactionId].pin);
         }else{
             emit ExecutionFailure(transactionId);
