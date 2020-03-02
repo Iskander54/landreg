@@ -2,6 +2,7 @@
 
 var Mortgage = artifacts.require('Mortgage')
 var Registry = artifacts.require('Registry')
+var Repayment = artifacts.require('Repayment')
 let catchRevert = require("./utils/exceptionsHelpers.js").catchRevert
 const helper = require('./utils/utils.js');
 
@@ -20,6 +21,7 @@ contract('Mortgage', function (accounts) {
         Reg = await Registry.new()
         contract_addr = Reg.address
         resp = await Reg.newProperty(prop_owner,2)
+        const admin = await Reg.addAdminRoles(instance.address,{from:bank})
         
     })
 
@@ -70,13 +72,37 @@ contract('Mortgage', function (accounts) {
          const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
          const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
          let newBalancePropOwner = await web3.eth.getBalance(accounts[2])
-         
          let bal = await instance.getDeposit()
          let before = parseInt(actualPropowner,10)
          let after = parseInt(newBalancePropOwner,10);
+         let repay_addr =clientconfirm.logs[2].args.addr
+         var Repaym = await Repayment.at(repay_addr)
+         const pay = 0.3*(10**18)
+         const tx1 = await Repaym.makePayment({from:client,value:pay});
+         const newOwner = await Reg.isProperty(2);
+         assert.equal(client,newOwner, "Owner has changed");
          
- 
-         assert.isAbove(after,before, "Balance incorrect!");
+
+     })
+
+     it("Check that we reach the repay contract and its address properly", async () => {
+        let actualPropowner = await web3.eth.getBalance(accounts[2])
+     
+        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,contract_addr,{value:5*(10**18)})
+         let ball = await instance.getDeposit()
+         
+         const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
+         const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
+         let newBalancePropOwner = await web3.eth.getBalance(accounts[2])
+         let bal = await instance.getDeposit()
+         let before = parseInt(actualPropowner,10)
+         let after = parseInt(newBalancePropOwner,10);
+         let repay_addr =clientconfirm.logs[2].args.addr
+         var Repaym = await Repayment.at(repay_addr)
+         const pay = 0.3*(10**18)
+         const tx1 = await Repaym.makePayment({from:client,value:pay});
+         const RepayBal = await Repaym.balance()
+         assert.equal(4800000000000000000,RepayBal, "You should be able to access the balance of the contract and make payment");
          
 
      })

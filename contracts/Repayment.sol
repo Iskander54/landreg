@@ -3,6 +3,8 @@ pragma solidity ^0.5.0;
 
 contract Registry {
     function updatePropertyFromAdmin(address ownerAddress, uint256 pin) public returns(bool success);
+
+    function addAdminRoles(address _admin) public;
 }
 
 contract Repayment{
@@ -10,6 +12,7 @@ contract Repayment{
     uint256 ETHER=(10**18);
     address payable public creditor;
     address public creditee;
+    uint256 public tid;
     uint256 public originalamount;
     uint256 public rates;
     uint256 public length;
@@ -33,7 +36,7 @@ contract Repayment{
     constructor(
         address payable _creditor,
         address _creditee,
-        uint256 tid,
+        uint256 _tid,
         uint256 _originalamount,
         uint256 _rates,
         uint256 _length,
@@ -42,6 +45,7 @@ contract Repayment{
     ) public {
         creditor = _creditor;
         creditee = _creditee;
+        tid = _tid;
         originalamount = _originalamount*ETHER;
         rates = _rates; //to be divided by 100 bc solidity dont deal with float
         length = _length;
@@ -59,7 +63,8 @@ contract Repayment{
     }
 
     function minimumPayment() public view returns (uint256){
-        return balance.mul(rates);
+        uint256 tmp = SafeMath.mul(balance,rates);
+        return SafeMath.div(tmp,100);
 
     }
 

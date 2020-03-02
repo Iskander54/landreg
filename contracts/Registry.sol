@@ -34,6 +34,7 @@ contract Registry is Ownable {
 constructor() public{
   properties[1].owner = 0xDf7064894A0da6b741b86104af7875647b7767A3;
   properties[1].listPointer = propertyList.push(1)-1;
+  administrator.add(msg.sender);
 }
 /// @dev function that allows to retrieve all the pin
 /// @return an array of ints representing the properties
@@ -41,11 +42,11 @@ constructor() public{
     return propertyList;
   }
 
-  function addAdminRoles(address _admin) public onlyOwner() {
+  function addAdminRoles(address _admin) public isAdmin(msg.sender) {
             administrator.add(_admin);
     }
 
-    function isRole(address check) public returns(bool){
+    function isRole(address check) public view returns(bool){
       return administrator.has(check);
     }
 

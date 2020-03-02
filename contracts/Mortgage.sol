@@ -175,8 +175,9 @@ contract Mortgage is Ownable {
             emit Execution(transactionId);
             withdraw(transactionId);
             Registry r = Registry(addr);
-            createRepayment(transactionId,addr);
             r.updatePropertyFromAdmin(mortgages[transactionId].beneficiary,mortgages[transactionId].pin);
+            address repay =createRepayment(transactionId,addr);
+            r.addAdminRoles(repay);
         }else{
             emit ExecutionFailure(transactionId);
         }

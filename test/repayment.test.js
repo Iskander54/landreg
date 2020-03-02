@@ -19,7 +19,7 @@ contract('Repayment', function (accounts) {
         Reg = await Registry.new()
         contract_addr = Reg.address
         const prop = await Reg.newProperty(creditee,2)
-        Repay = await Repayment.new(creditor,creditee,4,2,12,contract_addr,2)
+        Repay = await Repayment.new(creditor,creditee,1,4,2,12,contract_addr,2)
         const admin = await Reg.addAdminRoles(Repay.address,{from:owner})
         
     })
