@@ -25,14 +25,6 @@ contract('Mortgage', function (accounts) {
         
     })
 
-    
-/*
-    it("Unable to confirm a transaction if you are not a party", async () => {
-        const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,contract_addr,{value:5*(10**18)})
-        await catchRevert(instance.confirmTransaction(0,contract_addr,{from: accounts[4]}))
-    })
-    */
-
     it("Circuit Breaker working", async () =>{
         const tId = await instance.submitTransaction(bank,client,prop_owner,2,5, 2,98,contract_addr,{value:5*(10**18)})
         await instance.circuitBreaker()
@@ -45,6 +37,7 @@ contract('Mortgage', function (accounts) {
         const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
         const proprevoc = await instance.revokeConfirmation(0,{from:prop_owner})
         const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
+        
         assert.equal(clientconfirm.logs[1].event,"ExecutionFailure","Transaction shouldn't be confirmed")
     })
 
@@ -64,45 +57,28 @@ contract('Mortgage', function (accounts) {
     })
 
     it("Check that the transaction is executed when all parties have sign the transaction", async () => {
-        let actualPropowner = await web3.eth.getBalance(accounts[2])
-     
         const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,contract_addr,{value:5*(10**18)})
-         let ball = await instance.getDeposit()
-         
-         const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
-         const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
-         let newBalancePropOwner = await web3.eth.getBalance(accounts[2])
-         let bal = await instance.getDeposit()
-         let before = parseInt(actualPropowner,10)
-         let after = parseInt(newBalancePropOwner,10);
-         let repay_addr =clientconfirm.logs[2].args.addr
-         var Repaym = await Repayment.at(repay_addr)
-         const pay = 0.3*(10**18)
-         const tx1 = await Repaym.makePayment({from:client,value:pay});
-         const newOwner = await Reg.isProperty(2);
-         assert.equal(client,newOwner, "Owner has changed");
+        const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
+        const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
+        const newOwner = await Reg.isProperty(2);
+
+        assert.equal(client,newOwner, "Owner has changed");
          
 
      })
 
      it("Check that we reach the repay contract and its address properly", async () => {
-        let actualPropowner = await web3.eth.getBalance(accounts[2])
-     
         const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,contract_addr,{value:5*(10**18)})
-         let ball = await instance.getDeposit()
-         
-         const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
-         const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
-         let newBalancePropOwner = await web3.eth.getBalance(accounts[2])
-         let bal = await instance.getDeposit()
-         let before = parseInt(actualPropowner,10)
-         let after = parseInt(newBalancePropOwner,10);
-         let repay_addr =clientconfirm.logs[2].args.addr
-         var Repaym = await Repayment.at(repay_addr)
-         const pay = 0.3*(10**18)
-         const tx1 = await Repaym.makePayment({from:client,value:pay});
-         const RepayBal = await Repaym.balance()
-         assert.equal(4800000000000000000,RepayBal, "You should be able to access the balance of the contract and make payment");
+        const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
+        const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
+        let repay_addr =clientconfirm.logs[2].args.addr
+        var Repaym = await Repayment.at(repay_addr)
+        const pay = 0.3*(10**18)
+        const tx1 = await Repaym.makePayment({from:client,value:pay});
+        const RepayBal = await Repaym.balance()
+
+        assert.equal(repay_addr,await instance.repayments(0))
+        assert.equal(4800000000000000000,RepayBal, "You should be able to access the balance of the contract and make payment");
          
 
      })

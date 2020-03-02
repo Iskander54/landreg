@@ -33,6 +33,7 @@ contract('Registry',function(accounts){
         const tx1=await instance.newProperty(alex,5)
         const tx2=await instance.newProperty(kevin,2)
         const nb = await instance.getPropertyCount()
+
         assert.equal(nb.toNumber(),before.toNumber()+2,'the number of accounts is the same as the number of added accounts')
     })
 
@@ -43,12 +44,14 @@ contract('Registry',function(accounts){
             const update=await instance.updateProperty(kevin,3)
         }
         const checkUpdate = await instance.isProperty(3)
+
         assert.equal(checkUpdate,kevin,"The property hasnt changed owner")
     })
 
     it("Trying to delete a property when you not the owner of the contract",async()=>{
         const add=await instance.newProperty(kevin,3)
         const checkAdded= await instance.isProperty(3)
+
         await catchRevert(instance.deleteProperty(3,{from: yann}))
         
     })
@@ -61,6 +64,7 @@ contract('Registry',function(accounts){
             const update=await instance.deleteProperty(3,{from:alex})
         }
         const nb = await instance.getPropertyCount()
+        
         assert.equal(nb.toNumber(),before.toNumber()-1,"The deleteProperty is called by the owner and should be deleted")
     })
 
