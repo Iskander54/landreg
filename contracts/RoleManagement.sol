@@ -19,29 +19,10 @@ contract RoleManagement is Ownable {
   }
 
   /**
-   * @dev reverts if addr does not have role
-   * @param _operator address
+   * @dev check if the role exists
    * @param _role the name of the role
-   * // reverts
+   * @return bool
    */
-  function checkRole(address _operator, string memory _role)
-    public
-    view
-  {
-    require(roles[_role].has(_operator), "_operator does not have _role");
-  }
-
-  /**
-   * @dev modifier to scope access to a single role (uses msg.sender as addr)
-   * @param _role the name of the role
-   * // reverts
-   */
-  modifier onlyRole(string memory _role)
-  {
-    checkRole(msg.sender, _role);
-    _;
-  }
-
   function checkExistingRole(string memory _role) public view returns(bool){
     uint8 i=0;
     while(i<UserRoles.length){
@@ -52,11 +33,21 @@ contract RoleManagement is Ownable {
     return false;
   }
 
+  /**
+   * @dev modifier to ensure the role you want to grant is existing
+   * @param _role the name of the role
+   * // reverts
+   */
   modifier onlyExistingRole(string memory _role){
     require(checkExistingRole(_role)==true,"The role you want to assign doesn't exist.");
     _;
   }
-
+  /**
+   * @dev check if the addr has the role admin or is owner of this contract
+   * @param _operator addr 
+   * @param _role the name of the role
+   * @return bool
+   */
   function checkAdmin(address _operator, string memory _role) public view returns (bool){
     if(_operator == owner()){
       return true;
@@ -67,9 +58,31 @@ contract RoleManagement is Ownable {
     }
   }
 
+  /**
+   * @dev modifier to scope access to admin or contract owner
+   * // reverts
+   */
   modifier onlyAdmin(){
     require(checkAdmin(msg.sender,"Admin") == true , "You need to be an admin or an owner to proceed this action.");
     _;
+  }
+
+  /**
+   * @dev keep track of the length of the UserRoles array
+   * @return uint256
+   */
+  function getRolesCount() public view returns (uint256) {
+    return UserRoles.length;
+  }
+
+  /**
+   * @dev add a Role to the UserRoles array
+   * @param _role the name of the role
+   */
+  function addRolesList(string memory _role) public onlyAdmin{
+    if(checkExistingRole(_role)==false){
+      UserRoles.push(_role);
+    }
   }
 
 
@@ -112,24 +125,11 @@ contract RoleManagement is Ownable {
   }
 
   
-
     function grantPermission(address _operator, string memory _permission) public onlyAdmin onlyExistingRole(_permission) {
     addRole(_operator, _permission);
   }
 
   function revokePermission(address _operator, string memory _permission) public onlyAdmin {
     removeRole(_operator, _permission);
-  }
-
-  function grantPermissionBatch(address[] memory _operators, string memory _permission) public onlyAdmin {
-    for (uint256 i = 0; i < _operators.length; i++) {
-      addRole(_operators[i], _permission);
-    }
-  }
-
-  function revokePermissionBatch(address[] memory _operators, string memory _permission) public onlyAdmin {
-    for (uint256 i = 0; i < _operators.length; i++) {
-      removeRole(_operators[i], _permission);
-    }
   }
 }

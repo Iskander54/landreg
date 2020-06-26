@@ -15,22 +15,38 @@ contract('RoleManagement',function(accounts){
         instance = await RoleManagement.new()
     })
 
-    it("test test",async()=>{
-        const add=await instance.grantPermission(Alex,'landlord')
-        assert.equal(await instance.hasRole(Alex,'Client'),true,"wesh wesh")
+    it("Check if role is not granted when not part of predefine roles.",async()=>{
+        await catchRevert(instance.grantPermission(Alex,'landlord'))
     })
-    it("test2 test2",async()=>{
+    it("Check if role can be granted.",async()=>{
         const add=await instance.grantPermission(Alex,'Client')
-        assert.equal(await instance.hasRole(Alex,'Client'),true,"wesh wesh")
+        assert.equal(await instance.hasRole(Alex,'Client'),true,"Role granted")
     })
-    it("test3 test3",async()=>{
+    it("Grant admin role to an address and grant role with the later",async()=>{
         const add=await instance.grantPermission(Alex,'Admin')
         const ad=await instance.grantPermission(Kevin,'Client',{from: Alex})
-        assert.equal(await instance.hasRole(Kevin,'Client'),true,"wesh wesh")
+        assert.equal(await instance.hasRole(Kevin,'Client'),true,"Role")
     })
-    it("test3 test3",async()=>{
-        const add=await instance.grantPermission(Kevin,'Client',{from: Alex})
-        assert.equal(await instance.hasRole(Kevin,'Client'),true,"wesh wesh")
+    it("Granting role when you are not admin doesn't work",async()=>{
+        await catchRevert(instance.grantPermission(Kevin,'Client',{from: Alex}))
     })
-
+    it("Check if role can be removed after being granted.",async()=>{
+        const add=await instance.grantPermission(Alex,'Client')
+        assert.equal(await instance.hasRole(Alex,'Client'),true,"Role granted")
+        const rem=await instance.revokePermission(Alex,'Client')
+        assert.equal(await instance.hasRole(Alex,'Client'),false,"Role removed")
+    })
+    it("Cannot remove role when you are not admin.", async()=>{
+        const add=await instance.grantPermission(Alex,'Client')
+        assert.equal(await instance.hasRole(Alex,'Client'),true,"Role granted")
+        await catchRevert(instance.revokePermission(Alex,'Client',{from:Kevin}))
+        
+    })
+    it("Add roles to UserRoles", async()=>{
+        const roles_before = await instance.getRolesCount();
+        const addRoles = await instance.addRolesList('Tenant');
+        const roles_after = await instance.getRolesCount();
+        assert.equal(parseInt(roles_before)+1,roles_after,"New Role has been added.")
+        assert.equal(await instance.UserRoles.call(roles_after-1),'Tenant',"Everything is correct.")
+    })
 })
