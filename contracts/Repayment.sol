@@ -3,7 +3,6 @@ pragma solidity ^0.5.0;
 
 contract Registry {
     function updatePropertyFromAdmin(address ownerAddress, uint256 pin) public returns(bool success);
-
     function addAdminRoles(address _admin) public;
 }
 

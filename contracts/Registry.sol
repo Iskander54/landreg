@@ -1,10 +1,13 @@
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/access/Roles.sol";
+import { RoleManagement } from "./RoleManagement.sol";
+
 pragma solidity ^0.5.0;
+
 
 /* The Registry contract keeps track of the land registry of the city. Every house should be registered in this contract */
 
-contract Registry is Ownable {
+contract Registry is Ownable,RoleManagement{
   using Roles for Roles.Role;
 
 //address public owner;
@@ -25,12 +28,6 @@ contract Registry is Ownable {
   event LogDeleteProperty(uint _pin);
   event LogUpdateProperty(address _oldOwner,address _newOwner,address sender);
 
-  modifier isAdmin(address check) {
-    require(administrator.has(check),"Sender must be an administrator");
-    _;
-  }
-
-
 constructor() public{
   properties[1].owner = 0xDf7064894A0da6b741b86104af7875647b7767A3;
   properties[1].listPointer = propertyList.push(1)-1;
@@ -41,14 +38,6 @@ constructor() public{
   function listProperties() public view returns(uint[] memory ){
     return propertyList;
   }
-
-  function addAdminRoles(address _admin) public isAdmin(msg.sender) {
-            administrator.add(_admin);
-    }
-
-    function isRole(address check) public view returns(bool){
-      return administrator.has(check);
-    }
 
   /// @dev check if a PIN (property identification number) exists 
   /// @param pin which is the pin
@@ -67,7 +56,6 @@ constructor() public{
     /// @return the number of property on the blockchain
   function getPropertyCount() public view returns(uint propertyCount) {
     return propertyList.length;
-
   }
   
   /// @dev  create a new property on the blockchain 
@@ -97,7 +85,7 @@ constructor() public{
   /// @param ownerAddress is the owner of the property
   /// @param pin is the corresponding pin
   /// @return true to notify everything went well
-  function updatePropertyFromAdmin(address ownerAddress, uint pin) public isAdmin(msg.sender) returns(bool success) {
+  function updatePropertyFromAdmin(address ownerAddress, uint pin) public onlyAdmin() returns(bool success) {
     require(isProperty(pin)!=address(0),"This PIN doens't exist or no property on the blockchain");
     address oldOwner=properties[pin].owner;
     properties[pin].owner = ownerAddress;
