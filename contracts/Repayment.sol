@@ -2,8 +2,9 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 pragma solidity ^0.5.0;
 
 contract Registry {
-    function updatePropertyFromAdmin(address ownerAddress, uint256 pin) public returns(bool success);
+    function updateProperty(address ownerAddress, uint256 pin) public returns(bool success);
     function addAdminRoles(address _admin) public;
+    function grantPermission(address _operator,string memory _permission) public;
 }
 
 contract Repayment{
@@ -139,7 +140,7 @@ contract Repayment{
 
     function cancelLoan() internal {
         Registry r = Registry(Reg);
-        r.updatePropertyFromAdmin(creditor,pin);
+        r.updateProperty(creditor,pin);
         emit LoanCancelled(pin);
     }
 

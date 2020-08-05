@@ -10,6 +10,7 @@ contract RoleManagement is Ownable {
   string[] public UserRoles;
   event RoleAdded(address indexed operator, string role);
   event RoleRemoved(address indexed operator, string role);
+  event SenderOnAdmin(address indexed operator);
 
   constructor() public {
     UserRoles.push('Admin');
@@ -63,6 +64,7 @@ contract RoleManagement is Ownable {
    * // reverts
    */
   modifier onlyAdmin(){
+    emit SenderOnAdmin(msg.sender);
     require(checkAdmin(msg.sender,"Admin") == true , "You need to be an admin or an owner to proceed this action.");
     _;
   }

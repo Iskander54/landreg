@@ -1,5 +1,4 @@
 import "@openzeppelin/contracts/ownership/Ownable.sol";
-import "@openzeppelin/contracts/access/Roles.sol";
 import { RoleManagement } from "./RoleManagement.sol";
 
 pragma solidity ^0.5.0;
@@ -8,7 +7,6 @@ pragma solidity ^0.5.0;
 /* The Registry contract keeps track of the land registry of the city. Every house should be registered in this contract */
 
 contract Registry is Ownable,RoleManagement{
-  using Roles for Roles.Role;
 
 //address public owner;
 /* Data model that allows me to have a stucts with delete and index */
@@ -16,8 +14,6 @@ contract Registry is Ownable,RoleManagement{
     address owner;
     uint listPointer;
   }
-
-  Roles.Role administrator;
 
   //variables
   mapping(uint => Property) public properties;
@@ -31,7 +27,7 @@ contract Registry is Ownable,RoleManagement{
 constructor() public{
   properties[1].owner = 0xDf7064894A0da6b741b86104af7875647b7767A3;
   properties[1].listPointer = propertyList.push(1)-1;
-  administrator.add(msg.sender);
+  grantPermission(msg.sender,'Admin');
 }
 /// @dev function that allows to retrieve all the pin
 /// @return an array of ints representing the properties
@@ -73,19 +69,7 @@ constructor() public{
   /// @param ownerAddress is the new owner of the property
   /// @param pin is the corresponding pin
   /// @return true to notify everything went well
-  function updateProperty(address ownerAddress, uint pin) public onlyOwner() returns(bool success) {
-    require(isProperty(pin)!=address(0),"This PIN doens't exist or no property on the blockchain");
-    address oldOwner=properties[pin].owner;
-    properties[pin].owner = ownerAddress;
-    emit LogUpdateProperty(oldOwner,ownerAddress,msg.sender);
-    return true;
-  }
-
-  /// @dev allows to change the owner of a property automatically from the Mortgage contract
-  /// @param ownerAddress is the owner of the property
-  /// @param pin is the corresponding pin
-  /// @return true to notify everything went well
-  function updatePropertyFromAdmin(address ownerAddress, uint pin) public onlyAdmin() returns(bool success) {
+  function updateProperty(address ownerAddress, uint pin) public onlyAdmin() returns(bool success) {
     require(isProperty(pin)!=address(0),"This PIN doens't exist or no property on the blockchain");
     address oldOwner=properties[pin].owner;
     properties[pin].owner = ownerAddress;
@@ -96,7 +80,7 @@ constructor() public{
   /// @dev allows the owner to delete a property on the blockchain 
   /// @param pin pin of the property the owner wants to delete
   /// @return true to notify everything went well
-  function deleteProperty(uint pin) public onlyOwner() returns(bool success) {
+  function deleteProperty(uint pin) public onlyAdmin() returns(bool success) {
     require(properties[pin].owner!=address(0),"This PIN doens't exist");
     uint rowToDelete = properties[pin].listPointer;
     uint keyToMove   = propertyList[propertyList.length-1];

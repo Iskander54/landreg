@@ -1,5 +1,6 @@
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "./Repayment.sol";
+import { RoleManagement } from "./RoleManagement.sol";
 pragma solidity ^0.5.0;
 
 
@@ -80,7 +81,7 @@ contract Mortgage is Ownable {
 
     /// @dev Allows the contract to give the money to the owner of the property after everybody signed
     /// @param  transactionId Transaction ID
-    function withdraw(uint transactionId) public{
+    function withdraw(uint transactionId) internal{
         require(isParty[transactionId][msg.sender],"Only party");
         // against re-entrancy attack 
         require(pendingWithdrawals[mortgages[transactionId].pin_owner]!=0);
@@ -175,9 +176,9 @@ contract Mortgage is Ownable {
             emit Execution(transactionId);
             withdraw(transactionId);
             Registry r = Registry(addr);
-            r.updatePropertyFromAdmin(mortgages[transactionId].beneficiary,mortgages[transactionId].pin);
+            r.updateProperty(mortgages[transactionId].beneficiary,mortgages[transactionId].pin);
             address repay =createRepayment(transactionId,addr);
-            r.addAdminRoles(repay);
+            r.grantPermission(repay,'Admin');
         }else{
             emit ExecutionFailure(transactionId);
         }

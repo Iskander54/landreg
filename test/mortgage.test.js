@@ -21,7 +21,9 @@ contract('Mortgage', function (accounts) {
         Reg = await Registry.new()
         contract_addr = Reg.address
         resp = await Reg.newProperty(prop_owner,2)
-        const admin = await Reg.addAdminRoles(instance.address,{from:bank})
+        const admin1 = await Reg.grantPermission(client,'Admin')
+        const admin2 = await Reg.grantPermission(instance.address,'Admin')
+        const admin3 = await Reg.grantPermission(contract_addr,'Admin')
         
     })
 
@@ -58,8 +60,8 @@ contract('Mortgage', function (accounts) {
 
     it("Check that the transaction is executed when all parties have sign the transaction", async () => {
         const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,contract_addr,{value:5*(10**18)})
-        const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
         const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})
+        const propconfirm = await instance.confirmTransaction(0,contract_addr,{from: prop_owner})
         const newOwner = await Reg.isProperty(2);
 
         assert.equal(client,newOwner, "Owner has changed");
