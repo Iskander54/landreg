@@ -22,11 +22,24 @@ contract MultiOwnership{
     //Reverse lookup to match owners and indices
     mapping(address => uint) public ownersPct;
     mapping(address => uint) public ownersIndices;
-    mapping(bytes => uint) public allOperationsIndicies;
+    mapping(bytes32 => uint) public allOperationsIndicies;
 
     //Owners voting per operations
     mapping(bytes32 => uint256) public votesMaskByOperation;
     mapping(bytes32 => uint256) public votesCountByOperation;
+    mapping(bytes32 => mapping(address => bool)) public voters;
+
+    //EVENTS 
+    event SharedPropertyJoined(address newOwner,uint pourcentage);
+    event SharedPropertyBought(uint pin,address contract_address, uint OwnersCount);
+    event OwnerSharedIncreased(address owner, uint newPct);
+    event SharedSold(address oldOwner, address newOwner, uint newPct);
+    event OwnershipTransferred(address previousOwner, address newOwner, uint pct);
+    event OperationCreated(bytes32 operation, address proposer);
+    event OperationUpvoted(bytes32 operation, uint votes, uint ownersCount, address upvoter);
+    event OperationPerformed(bytes32 operation, uint howMany);
+    event OperationDownvoted(bytes32 operation, uint votes, uint ownersCount,  address downvoter);
+    event OperationCancelled(bytes32 operation, address lastCanceller,uint necessaryPct, uint againstPct);
 
     //Accessors
     function isOwner(address _owners) public view returns (bool){
@@ -37,12 +50,8 @@ contract MultiOwnership{
         return owners.length;
     }
 
-    function allOperationsCount() public {
-
-    }
-
-    function pendingOperationsCount() public {
-
+    function allOperationsCount() public view returns(uint) {
+        return allOperations.length;
     }
     
     function getBalance() public view returns(uint) {
@@ -53,13 +62,14 @@ contract MultiOwnership{
 
     //Modifiers
     modifier onlyOwner{
+        require(isOwner(msg.sender)==true,"You are not part of the owners.");
         _;
     }
-
+    /*
     modifier onlyAllOwner{
         _;
     }
-
+    */
     modifier notAchieved{
         require(address(this).balance<amountToReach);
         _;
@@ -88,8 +98,21 @@ contract MultiOwnership{
     /**
     * @dev check if we reach the vote for any operations
      */
-    function checkUpVote() internal {
-
+    function checkUpVote(bytes32 operation) internal returns (bool) {
+        uint256 tmp_against = votesMaskByOperation[operation]/owners.length;
+        uint256 tmp_for = votesCountByOperation[operation]/owners.length;
+        if(tmp_for>tmp_against && (tmp_for*100)>pourcentToPass){
+            emit OperationPerformed(operation,tmp_for);
+            return true;
+        }else{
+            uint256 votesNecessary = pourcentToPass*owners.length;
+            uint256 votesMissing = votesNecessary-votesCountByOperation[operation];
+            uint256 leftVotee = owners.length - votesCountByOperation[operation] - votesMaskByOperation[operation];
+            if(votesMissing>leftVotee){
+                emit OperationCancelled(operation,msg.sender,pourcentToPass,tmp_against);
+            }
+            return false;
+        }
     }
 
     function()
@@ -113,6 +136,7 @@ contract MultiOwnership{
         reg.properties[uint].owner.transfer(address(this).balance);
         reg.updateProperty(address(this),pin);
         */
+        emit SharedPropertyBought(pin, address(this),owners.length);
     }
 
     
@@ -128,6 +152,7 @@ contract MultiOwnership{
         ownersIndices[msg.sender]=owners.length;
         ownersPct[msg.sender]=(msg.value/amountToReach)*100;
         pendingBuying=address(this).balance;
+        emit SharedPropertyJoined(msg.sender,ownersPct[msg.sender]);
         buyProperty();
     }
 
@@ -140,6 +165,7 @@ contract MultiOwnership{
         uint256 tmp=ownersPct[msg.sender];
         ownersPct[msg.sender]=((msg.value/amountToReach)*100)+tmp;
         pendingBuying=address(this).balance;
+        emit OwnerSharedIncreased(msg.sender,ownersPct[msg.sender]);
         buyProperty();
     }
 
@@ -151,6 +177,7 @@ contract MultiOwnership{
     function sellShare(uint256 _pct, uint256 _amount) public onlyOwner() {
         onSale memory share = onSale(msg.sender,_pct,_amount);
         sales.push(share);
+        
     }
     
     /**
@@ -165,6 +192,7 @@ contract MultiOwnership{
             sales[i] = sales[i+1];
         }
         sales.length--;
+        emit SharedSold(sales[index].owner, msg.sender, sales[index].pct);
     }
 
 
@@ -188,17 +216,33 @@ contract MultiOwnership{
             ownersPct[_oldOwner]=0;
             ownersPct[_newOwner]=tmp;
         }
+        emit OwnershipTransferred(_oldOwner,_newOwner,_pct);
+    }
+
+    function createOperation() public onlyOwner(){
+        bytes32 operation = keccak256(msg.data);
+        allOperationsIndicies[operation] = allOperations.length;
+        allOperations.push(operation);
+        emit OperationCreated(operation,msg.sender);
     }
 
     function upVote(bytes32 operation) public onlyOwner() {
+        require(voters[operation][msg.sender]==false,"Sender already voted.");
         uint operationVotesCount=votesCountByOperation[operation]+1;
         votesCountByOperation[operation] = operationVotesCount;
+        voters[operation][msg.sender]=true;
+        emit OperationUpvoted(operation,operationVotesCount,owners.length,msg.sender);
+        checkUpVote(operation);
 
     }
 
     function downVote(bytes32 operation) public onlyOwner() {
+        require(voters[operation][msg.sender]==false,"Sender already voted.");
         uint operationMaskCount=votesMaskByOperation[operation]+1;
         votesMaskByOperation[operation] = operationMaskCount;
+        voters[operation][msg.sender]=true;
+        emit OperationDownvoted(operation,operationMaskCount,owners.length,msg.sender);
+        checkUpVote(operation);
     }
 
 
