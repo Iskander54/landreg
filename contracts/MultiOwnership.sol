@@ -1,5 +1,13 @@
 import { RoleManagement } from "./RoleManagement.sol";
+
 pragma solidity ^0.5.0;
+
+contract Registry {
+    function updateProperty(address ownerAddress, uint256 pin) public returns(bool success);
+    function addAdminRoles(address _admin) public;
+    function grantPermission(address _operator,string memory _permission) public;
+    function getPropertyOwner(uint pin) public returns(address payable);
+}
 
 contract MultiOwnership{
 
@@ -87,10 +95,9 @@ contract MultiOwnership{
         owners.push(msg.sender);
         ownersIndices[msg.sender]=owners.length;
         ownersPct[msg.sender]=(msg.value/amountToReach)*100;
-       
-       /* regaddr=_regaddr;
+        regaddr=_regaddr;
         Registry reg = Registry(regaddr);
-        reg.grantPermission(address(this),'Admin');*/
+        reg.grantPermission(address(this),'Admin');
     }
 
     //Internal Methods
@@ -131,11 +138,9 @@ contract MultiOwnership{
     function buyProperty() internal {
         require(pendingBuying!=0);
         pendingBuying=0;
-        /*
         Registry reg = Registry(regaddr);
-        reg.properties[uint].owner.transfer(address(this).balance);
+        reg.getPropertyOwner(pin).transfer(address(this).balance);
         reg.updateProperty(address(this),pin);
-        */
         emit SharedPropertyBought(pin, address(this),owners.length);
     }
 
@@ -219,6 +224,9 @@ contract MultiOwnership{
         emit OwnershipTransferred(_oldOwner,_newOwner,_pct);
     }
 
+    /**
+    * @dev allows any shareholder to suggest an operation about the property
+     */
     function createOperation() public onlyOwner(){
         bytes32 operation = keccak256(msg.data);
         allOperationsIndicies[operation] = allOperations.length;
@@ -226,6 +234,10 @@ contract MultiOwnership{
         emit OperationCreated(operation,msg.sender);
     }
 
+    /**
+    * @dev allows any shareholder to upvote an operation
+    * @param operation which is the corresponding bytes index of the operation
+     */
     function upVote(bytes32 operation) public onlyOwner() {
         require(voters[operation][msg.sender]==false,"Sender already voted.");
         uint operationVotesCount=votesCountByOperation[operation]+1;
@@ -236,6 +248,10 @@ contract MultiOwnership{
 
     }
 
+    /**
+    * @dev allows any shareholder to downVote an operation
+    * @param operation which is the corresponding bytes index of the operation
+     */
     function downVote(bytes32 operation) public onlyOwner() {
         require(voters[operation][msg.sender]==false,"Sender already voted.");
         uint operationMaskCount=votesMaskByOperation[operation]+1;

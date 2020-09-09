@@ -11,7 +11,7 @@ contract Registry is Ownable,RoleManagement{
 //address public owner;
 /* Data model that allows me to have a stucts with delete and index */
   struct Property {
-    address owner;
+    address payable owner;
     uint listPointer;
   }
 
@@ -33,6 +33,10 @@ constructor() public{
 /// @return an array of ints representing the properties
   function listProperties() public view returns(uint[] memory ){
     return propertyList;
+  }
+
+  function getPropertyOwner(uint pin) public view returns(address payable){
+    return properties[pin].owner;
   }
 
   /// @dev check if a PIN (property identification number) exists 
@@ -58,7 +62,7 @@ constructor() public{
   /// @param ownerAddress is the owner of the property
   /// @param pin is the corresponding pin
   /// @return true to notify everything went well
-  function newProperty(address ownerAddress, uint pin) public returns(bool success) {
+  function newProperty(address  payable ownerAddress, uint pin) public returns(bool success) {
     require(properties[pin].owner==address(0),"This PIN already exist");
     properties[pin].owner = ownerAddress;
     properties[pin].listPointer = propertyList.push(pin)-1;
@@ -69,7 +73,7 @@ constructor() public{
   /// @param ownerAddress is the new owner of the property
   /// @param pin is the corresponding pin
   /// @return true to notify everything went well
-  function updateProperty(address ownerAddress, uint pin) public onlyAdmin() returns(bool success) {
+  function updateProperty(address payable ownerAddress, uint pin) public onlyAdmin() returns(bool success) {
     require(isProperty(pin)!=address(0),"This PIN doens't exist or no property on the blockchain");
     address oldOwner=properties[pin].owner;
     properties[pin].owner = ownerAddress;
