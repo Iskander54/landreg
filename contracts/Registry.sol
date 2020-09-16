@@ -52,6 +52,7 @@ constructor() public{
   }
 
 
+
     /// @dev Check the number of property on the blockchain 
     /// @return the number of property on the blockchain
   function getPropertyCount() public view returns(uint propertyCount) {
