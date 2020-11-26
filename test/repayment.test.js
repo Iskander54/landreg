@@ -60,7 +60,7 @@ contract('Repayment', function (accounts) {
          balanceafter = parseInt(await web3.eth.getBalance(creditor));
          const gp = await web3.eth.getTransaction(withdraw.tx);
          const txcost = withdraw.receipt.cumulativeGasUsed*gp.gasPrice;
-         assert.equal(balanceafter.toString().substring(0,10),(balancebefore+(balancontract-txcost)).toString().substring(0,10),"Balance of the creditor should increase") 
+         assert.equal(balanceafter.toString().substring(0,9),(balancebefore+(balancontract-txcost)).toString().substring(0,9),"Balance of the creditor should increase") 
      })
 
     it("Missed Payment so can't accept it", async()=>{
@@ -75,8 +75,8 @@ contract('Repayment', function (accounts) {
         const diffBalance = balanceA-balanceB
         const txcost=tId.receipt.cumulativeGasUsed*tx.gasPrice
 
-        assert.equal(await Repay.missedPayment(),1,"count the missed payment")
-        assert.equal(diffBalance.toString().substring(0,6),(penalty+txcost).toString().substring(0,6)," Balance after is not the right one, should be Balance - fees and transaction cost")  
+        assert.equal(await Repay.missedPaymentCount(),1,"count the missed payment")
+        assert.equal(diffBalance.toString().substring(0,5),(penalty+txcost).toString().substring(0,5)," Balance after is not the right one, should be Balance - fees and transaction cost")  
     })
 
     it(" 3 Missed Payment so property should be transfered to creditor",async()=>{

@@ -47,6 +47,6 @@ contract('RoleManagement',function(accounts){
         const addRoles = await instance.addRolesList('Tenant');
         const roles_after = await instance.getRolesCount();
         assert.equal(parseInt(roles_before)+1,roles_after,"New Role has been added.")
-        assert.equal(await instance.UserRoles.call(roles_after-1),'Tenant',"Everything is correct.")
+        assert.equal(await instance.userRoles.call(roles_after-1),'Tenant',"Everything is correct.")
     })
 })

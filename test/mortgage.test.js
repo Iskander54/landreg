@@ -49,15 +49,17 @@ contract('Mortgage', function (accounts) {
     })
 
     it("check that we can get the money in a contract",async()=>{
+        console.log("init1 ")
         const initial=parseInt(await instance.getDeposit(),10)
+        console.log("init "+initial)
         const deposit=5*(10**18)
         const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,contract_addr,{value:deposit})
         let ball = parseInt(await instance.getDeposit(),10)
-
+        console.log(ball)
         assert.equal(initial+parseInt(deposit,10),ball,"we should be able to check how much money the contract holds")
 
     })
-
+    
     it("Check that the transaction is executed when all parties have sign the transaction", async () => {
         const tId = await instance.submitTransaction(bank,client,prop_owner,2,5,2,98,contract_addr,{value:5*(10**18)})
         const clientconfirm = await instance.confirmTransaction(0,contract_addr,{from: client})

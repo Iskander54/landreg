@@ -1,15 +1,15 @@
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
-pragma solidity ^0.5.0;
+pragma solidity 0.5.11;
 
-contract Registry {
-    function updateProperty(address ownerAddress, uint256 pin) public returns(bool success);
-    function addAdminRoles(address _admin) public;
-    function grantPermission(address _operator,string memory _permission) public;
+contract RegistryforRepayment {
+    function updateProperty(address ownerAddress, uint256 pin) external returns(bool success);
+    function addAdminRoles(address _admin) external;
+    function grantPermission(address _operator,string calldata _permission) external;
 }
 
 contract Repayment{
     using SafeMath for uint256;
-    uint256 ETHER=(10**18);
+    uint256 constant ETHER_=(10**18);
     address payable public creditor;
     address public creditee;
     uint256 public tid;
@@ -19,11 +19,11 @@ contract Repayment{
     uint256 public balance;
     uint256 public pin; 
 
-    uint256 public missedPayment=0;
-    uint256 public paymentPeriod = 7 days;
-    uint256 public dueDate = now + paymentPeriod;
+    uint256 public missedPaymentCount=0;
+    uint256 constant public PAYMENT_PERIOD = 7 days;
+    uint256 public dueDate = now + PAYMENT_PERIOD;
     uint256 public penalty;
-    address Reg;
+    address reg;
 
     event PaymentMissed(uint256 newBalance, uint256 newDueDate);
     event LatePayment(uint256 fees,uint256 interest,uint256 NewDueDate);
@@ -46,11 +46,11 @@ contract Repayment{
         creditor = _creditor;
         creditee = _creditee;
         tid = _tid;
-        originalamount = _originalamount*ETHER;
+        originalamount = _originalamount*ETHER_;
         rates = _rates; //to be divided by 100 bc solidity dont deal with float
         length = _length;
         balance = originalamount;
-        Reg=_reg;
+        reg=_reg;
         pin=_pin;
     }
 
@@ -62,39 +62,40 @@ contract Repayment{
         return (interest,principal);
     }
 
-    function minimumPayment() public view returns (uint256){
+    function minimumPayment() external view returns (uint256){
         uint256 tmp = SafeMath.mul(balance,rates);
         return SafeMath.div(tmp,100);
 
     }
 
-    function withdraw() public{
+    function withdraw() external{
         require(msg.sender==creditor,"Only creditor can withdraw money");
-        creditor.transfer(address(this).balance);
+        // because of invalid opcode
+        address self = address(this);
+        uint256 contractBalance = self.balance;
+        creditor.transfer(contractBalance);
     }
 
     function processPeriod(uint256 principal) internal {
         balance-=principal;
-        dueDate+= paymentPeriod;
+        dueDate+= PAYMENT_PERIOD;
     }
 
     /// @dev allows anyone to check the balance of the contract
     /// @return returns the contract balance
-    function getNow() public view returns (uint256){
+    function getNow() external view returns (uint256){
         return now;
     }
 
 
-    function makePayment() public payable {
+    function makePayment() external payable {
         if(now>dueDate){
-            penalty=MissedPayment();
+            penalty=missedPayment();
             require(msg.value>=penalty,"You have to pay at least the penalty before going through");
             uint256 change = msg.value-penalty;
-            if(change>=0){
-                msg.sender.transfer(change);
-                emit ChangeFromPenalty(change);
-            }
+            emit ChangeFromPenalty(change);
             processPeriod(0);
+            msg.sender.transfer(change);
         }else{
         (uint256 interest,uint256 principal) = calculateComponents(msg.value);
         require(principal<=balance,"You can't pay more than what you owe");
@@ -106,14 +107,13 @@ contract Repayment{
     }
 
 
-    function processMissedPayment() public {
+    function processMissedPayment() external {
         require(now>dueDate);
-        if(missedPayment<4){
-            missedPayment+=1;
+        if(missedPaymentCount<4){
+            missedPaymentCount+=1;
             uint256 tmp = SafeMath.mul(balance,rates);
+            uint256 fees = SafeMath.div(SafeMath.mul(missedPaymentCount,tmp),10000);
             uint256 interest = SafeMath.div(tmp,100);
-            uint256 fees = SafeMath.mul(missedPayment,interest);
-            fees = SafeMath.div(fees,100);
             balance+= fees + interest;
             processPeriod(0);
             emit PaymentMissed(balance,dueDate);
@@ -123,14 +123,13 @@ contract Repayment{
 
     } 
 
-    function MissedPayment() internal returns (uint256) {
+    function missedPayment() internal returns (uint256) {
         require(now>dueDate);
-        if(missedPayment<4){
-            missedPayment+=1;
+        if(missedPaymentCount<4){
+            missedPaymentCount+=1;
             uint256 tmp = SafeMath.mul(balance,rates);
+            uint256 fees = SafeMath.div(SafeMath.mul(missedPaymentCount,tmp),10000);
             uint256 interest = SafeMath.div(tmp,100);
-            uint256 fees = SafeMath.mul(missedPayment,interest);
-            fees = SafeMath.div(fees,100);
             emit LatePayment(fees,interest,dueDate);
             return interest+fees;
         }else{
@@ -139,9 +138,10 @@ contract Repayment{
     }
 
     function cancelLoan() internal {
-        Registry r = Registry(Reg);
-        r.updateProperty(creditor,pin);
+        RegistryforRepayment r = RegistryforRepayment(reg);
         emit LoanCancelled(pin);
+        bool success = r.updateProperty(creditor,pin);
+        
     }
 
 
