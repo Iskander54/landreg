@@ -2,25 +2,25 @@ import { RoleManagement } from "./RoleManagement.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
 
-pragma solidity 0.5.11;
+pragma solidity ^0.5.0;
 
-contract RegistryforMulti {
-    function updateProperty(address ownerAddress, uint256 pin) external returns(bool success);
-    function grantPermission(address _operator,string calldata _permission) external;
-    function getPropertyOwner(uint pin) external returns(address payable);
+contract Registry {
+    function updateProperty(address ownerAddress, uint256 pin) public returns(bool success);
+    function grantPermission(address _operator,string memory _permission) public;
+    function getPropertyOwner(uint pin) public returns(address payable);
 }
 
 contract MultiOwnership{
     using SafeMath for uint256;
 
-    struct OnSale{
+    struct onSale{
         address owner;
         uint256 pct;
         uint256 amount;
     }
     // Variables
     address[] public owners;
-    OnSale[] public sales;
+    onSale[] public sales;
     bytes32[] public allOperations;
     uint256 public pourcentToPass;
     uint256 public amountToReach;
@@ -28,7 +28,7 @@ contract MultiOwnership{
     uint256 public pinOwner;
     address public regaddr;
     uint256 public pendingBuying;
-    uint256 constant FINNEY_=(10**15);
+    uint256 FINNEY=(10**15);
 
     //Reverse lookup to match owners and indices
     mapping(address => uint) public ownersPct;
@@ -56,41 +56,37 @@ contract MultiOwnership{
     event SendingBackMoney(uint256 valuesent,uint256 pendingbalance, uint256 refund);
 
     //Accessors
-    function isOwner(address owner) public view returns (bool){
-        return ownersIndices[owner]>0;
+    function isOwner(address _owners) public view returns (bool){
+        return ownersIndices[_owners]>0;
     }
 
-    function ownersCount() external view returns(uint) {
+    function ownersCount() public view returns(uint) {
         return owners.length;
     }
 
-    function allOperationsCount() external view returns(uint) {
+    function allOperationsCount() public view returns(uint) {
         return allOperations.length;
     }
     
-    function getBalance() external view returns(uint) {
-        address self = address(this);
-        uint256 balance = self.balance;
-        return balance;
+    function getBalance() public view returns(uint) {
+        return address(this).balance;
 
     }
 
 
-    function getPendingbuying() external view returns(uint){
+    function getPendingbuying() public view returns(uint){
         return amountToReach;
     }
     //Events
 
     //Modifiers
     modifier onlyOwner{
-        require(isOwner(msg.sender),"You are not part of the owners.");
+        require(isOwner(msg.sender)==true,"You are not part of the owners.");
         _;
     }
 
     modifier notAchieved{
-        address self = address(this);
-        uint256 balance = self.balance;
-        require(balance<=amountToReach,"The amount to reach for the contract is already achieved");
+        require(address(this).balance<=amountToReach,"The amount to reach for the contract is already achieved");
         _;
     }
 
@@ -98,17 +94,15 @@ contract MultiOwnership{
 
     constructor(uint256 _pourcent, uint256 _amount, uint256 _pin, uint256 _pinOwner, address _regaddr) public payable{
         require(msg.value>0,"You need to send money when youcreate this kind of contract");
-        require(msg.value<_amount*FINNEY_,"Sending more money that the amount to collect with this contract");
-        amountToReach=_amount*FINNEY_;
+        require(msg.value<_amount*FINNEY,"Sending more money that the amount to collect with this contract");
+        amountToReach=_amount*FINNEY;
         pourcentToPass=_pourcent;
         pin=_pin;
         pinOwner=_pinOwner;
         owners.push(msg.sender);
         ownersIndices[msg.sender]=owners.length;
         ownersPct[msg.sender]=SafeMath.div(SafeMath.mul(msg.value,100),amountToReach);
-        address self = address(this);
-        uint256 balance = self.balance;
-        pendingBuying=balance;
+        pendingBuying=address(this).balance;
         emit SharedPropertyJoined(msg.sender,ownersPct[msg.sender],SafeMath.sub(amountToReach,pendingBuying));
         regaddr=_regaddr;
     }
@@ -151,12 +145,10 @@ contract MultiOwnership{
     function buyProperty() internal {
         require(pendingBuying!=0,"Check that pendingBuying is different form 0 to forbid reentrancy attack.");
         pendingBuying=0;
+        Registry reg = Registry(regaddr);
+        reg.getPropertyOwner(pin).transfer(address(this).balance);
+        reg.updateProperty(address(this),pin);
         emit SharedPropertyBought(pin, address(this),owners.length);
-        RegistryforMulti reg = RegistryforMulti(regaddr);
-        address self = address(this);
-        uint256 balance = self.balance;
-        reg.getPropertyOwner(pin).transfer(balance);
-        bool success = reg.updateProperty(address(this),pin);
     }
 
     
@@ -164,63 +156,60 @@ contract MultiOwnership{
     /**
     * @dev if you want to join the multi-shared ownership contract
      */
-    function joinSharedProperty() external payable {
+    function joinSharedProperty() public payable {
         require(ownersIndices[msg.sender]==0,"You are already part of the shared property");
         require(msg.value>0,"You need to seend at least as much ether as amount.");
         uint256 amount = msg.value;
         if(msg.value>SafeMath.sub(amountToReach,pendingBuying)){
-            emit SendingBackMoney(msg.value,SafeMath.sub(amountToReach,pendingBuying),SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying)));
             msg.sender.transfer(SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying)));
             amount = SafeMath.sub(amountToReach,pendingBuying);
+            emit SendingBackMoney(msg.value,SafeMath.sub(amountToReach,pendingBuying),SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying)));
         }
         owners.push(msg.sender);
         ownersIndices[msg.sender]=owners.length;
         ownersPct[msg.sender]=SafeMath.div(SafeMath.mul(amount,100),amountToReach);
-        address self = address(this);
-        uint256 balance = self.balance;
-        pendingBuying=balance;
+        pendingBuying=address(this).balance;
         emit SharedPropertyJoined(msg.sender,ownersPct[msg.sender],SafeMath.sub(amountToReach,pendingBuying));
         if(pendingBuying==amountToReach){
             buyProperty();
         }
+        
     }
 
     /**
     * @dev if someone already in the multi shared ownership contract wants to buy some more shares.
      */
-    function addMoney() external payable onlyOwner(){
+    function addMoney() public payable onlyOwner(){
         require(msg.value>0,"You need to send ether with this function");
         uint256 amount = msg.value;
         if(msg.value>SafeMath.sub(amountToReach,pendingBuying)){
-            emit SendingBackMoney(msg.value,SafeMath.sub(amountToReach,pendingBuying),SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying)));
             msg.sender.transfer(SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying)));
             amount = SafeMath.sub(amountToReach,pendingBuying);
+            emit SendingBackMoney(msg.value,SafeMath.sub(amountToReach,pendingBuying),SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying)));
         }
         uint256 tmp=ownersPct[msg.sender];
-        ownersPct[msg.sender]=SafeMath.add(SafeMath.div(SafeMath.mul(msg.value,100),amountToReach),tmp);
-        address self = address(this);
-        uint256 balance = self.balance;
-        pendingBuying=balance;
+        ownersPct[msg.sender]=SafeMath.add(SafeMath.mul(SafeMath.div(msg.value,amountToReach),100),tmp);
+        pendingBuying=address(this).balance;
         emit OwnerSharedIncreased(msg.sender,ownersPct[msg.sender]);
         buyProperty();
     }
 
     /**
     * @dev If one of the owner wants to sell part of all his share
-    * @param pct pourcentage of his share that the owner is willing to sell
-    * @param amount how much money the onwer is asking for his share 
+    * @param _pct pourcentage of his share that the owner is willing to sell
+    * @param _amount how much money the onwer is asking for his share 
      */
-    function sellShare(uint256 pct, uint256 amount) external onlyOwner() {
-        OnSale memory share = OnSale(msg.sender,pct,SafeMath.mul(amount,FINNEY_));
+    function sellShare(uint256 _pct, uint256 _amount) public onlyOwner() {
+        onSale memory share = onSale(msg.sender,_pct,SafeMath.mul(_amount,FINNEY));
         sales.push(share);
-        emit SharedPutMarket(msg.sender,SafeMath.div(SafeMath.mul(ownersPct[msg.sender],pct),100),SafeMath.mul(amount,FINNEY_));
+        emit SharedPutMarket(msg.sender,SafeMath.div(SafeMath.mul(ownersPct[msg.sender],_pct),100),SafeMath.mul(_amount,FINNEY));
     }
     
     /**
     * @dev If a new person wants to buy someone's share
     * @param index index of the on sale Share he wants to buy 
      */
-    function buyShare(uint256 index) external payable {
+    function buyShare(uint256 index) public payable {
         require(msg.value==sales[index].amount,"Value doesn't match price.");
         require(index<=SafeMath.sub(sales.length,1),"Sale doesn't exist");
         transferOwnership(msg.sender,sales[index].owner,sales[index].pct);
@@ -232,28 +221,28 @@ contract MultiOwnership{
 
     /**
     * @dev transfer the ownership of the share 
-    * @param newOwner new owner address
-    * @param oldOwner old owner address
-    * @param pct pourcentage of the transfer
+    * @param _newOwner new owner address
+    * @param _oldOwner old owner address
+    * @param _pct pourcentage of the transfer
      */
-    function transferOwnership(address newOwner, address oldOwner, uint256 pct) internal {
-        require(pct<=100,"Can't buy more than 100% of a someone's property");
-        if(pct!=100){
+    function transferOwnership(address _newOwner, address _oldOwner, uint256 _pct) internal {
+        require(_pct<=100,"Can't buy more than 100% of a someone's property");
+        if(_pct!=100){
             require(owners.length<256,"Can't have more than 256 owners.");
-            owners.push(newOwner);
-            ownersIndices[newOwner]=owners.length;
-            ownersPct[newOwner]=SafeMath.div(SafeMath.mul(ownersPct[oldOwner],pct),100);
-            emit SharedPropertyJoined(newOwner,ownersPct[newOwner],0);
+            owners.push(_newOwner);
+            ownersIndices[_newOwner]=owners.length;
+            ownersPct[_newOwner]=SafeMath.div(SafeMath.mul(ownersPct[_oldOwner],_pct),100);
+            emit SharedPropertyJoined(_newOwner,ownersPct[_newOwner],0);
         }
-        if(pct==100){
-            uint256 index=ownersIndices[oldOwner];
-            owners[index]=newOwner;
-            ownersIndices[newOwner]=index;
-            delete ownersIndices[oldOwner];
-            uint256 tmp = ownersPct[oldOwner];
-            ownersPct[oldOwner]=0;
-            ownersPct[newOwner]=tmp;
-            emit OwnershipTransferred(oldOwner,newOwner,pct);
+        if(_pct==100){
+            uint256 index=ownersIndices[_oldOwner];
+            owners[index]=_newOwner;
+            ownersIndices[_newOwner]=index;
+            delete ownersIndices[_oldOwner];
+            uint256 tmp = ownersPct[_oldOwner];
+            ownersPct[_oldOwner]=0;
+            ownersPct[_newOwner]=tmp;
+            emit OwnershipTransferred(_oldOwner,_newOwner,_pct);
         }
         
     }
@@ -261,7 +250,7 @@ contract MultiOwnership{
     /**
     * @dev allows any shareholder to suggest an operation about the property
      */
-    function createOperation() external onlyOwner(){
+    function createOperation() public onlyOwner(){
         bytes32 operation = keccak256(msg.data);
         allOperationsIndicies[operation] = allOperations.length;
         allOperations.push(operation);
@@ -272,10 +261,10 @@ contract MultiOwnership{
     * @dev allows any shareholder to upvote an operation
     * send msg.data for refering to the operation
      */
-    function upVote() external onlyOwner(){
+    function upVote() public onlyOwner(){
         bytes32 operation=keccak256(msg.data);
         require(allOperations[allOperationsIndicies[operation]]>=0,"Operation doesn't exist");
-        require(!voters[operation][msg.sender],"Sender already voted.");
+        require(voters[operation][msg.sender]==false,"Sender already voted.");
         uint operationVotesCount=SafeMath.add(votesCountByOperation[operation],ownersPct[msg.sender]);
         votesCountByOperation[operation] = operationVotesCount;
         voters[operation][msg.sender]=true;
@@ -288,10 +277,10 @@ contract MultiOwnership{
     * @dev allows any shareholder to downVote an operation
     * send msg.data for refering to the operation
      */
-    function downVote() external onlyOwner() {
+    function downVote() public onlyOwner() {
         bytes32 operation=keccak256(msg.data);
         require(allOperations[allOperationsIndicies[operation]]!=0,"Operation doesn't exist");
-        require(!voters[operation][msg.sender],"Sender already voted.");
+        require(voters[operation][msg.sender]==false,"Sender already voted.");
         uint operationMaskCount=SafeMath.add(votesMaskByOperation[operation],ownersPct[msg.sender]);
         votesMaskByOperation[operation] = operationMaskCount;
         voters[operation][msg.sender]=true;

@@ -1,15 +1,15 @@
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "./Repayment.sol";
 import { RoleManagement } from "./RoleManagement.sol";
-pragma solidity 0.5.11;
+pragma solidity ^0.5.0;
 
 
 
 
 contract Mortgage is Ownable {
     //Variables
-    uint constant ETHER_=(10**18);
-    uint public mortgageCount=0;
+    uint ETHER=(10**18);
+    uint public MortgageCount=0;
     bool public contractPaused = false;
     address[] public repayments;
 
@@ -26,7 +26,7 @@ contract Mortgage is Ownable {
         //mapping (address => bool) isParty;
         uint required;
         //address[] parties;
-        address payable pinOwner;
+        address payable pin_owner;
         uint pin;
         uint amount;
         uint rates;
@@ -46,7 +46,7 @@ contract Mortgage is Ownable {
     //modifiers
     // If the contract is paused, stop the modified function attached
     modifier checkIfPaused() {
-        require(!contractPaused);
+        require(contractPaused == false);
         _;
     } 
  
@@ -68,17 +68,15 @@ contract Mortgage is Ownable {
     }
 
     /// @dev circuitbreaker function that allows to stop the contract for time for any reason
-    function circuitBreaker() external onlyOwner() {
-    if (!contractPaused) { contractPaused = true; }
+    function circuitBreaker() public onlyOwner() {
+    if (contractPaused == false) { contractPaused = true; }
     else { contractPaused = false; }
 }
 
     /// @dev allows anyone to check the balance of the contract
     /// @return returns the contract balance
-    function getDeposit() external view returns (uint256){
-        address self = address(this);
-        uint256 balance = self.balance;
-        return balance;
+    function getDeposit() public view returns (uint256){
+        return address(this).balance;
     }
 
     /// @dev Allows the contract to give the money to the owner of the property after everybody signed
@@ -86,40 +84,38 @@ contract Mortgage is Ownable {
     function withdraw(uint transactionId) internal{
         require(isParty[transactionId][msg.sender],"Only party");
         // against re-entrancy attack 
-        require(pendingWithdrawals[mortgages[transactionId].pinOwner]!=0);
-        pendingWithdrawals[mortgages[transactionId].pinOwner]=0;
-        address self = address(this);
-        uint256 balance = self.balance;
-        mortgages[transactionId].pinOwner.transfer(balance);
+        require(pendingWithdrawals[mortgages[transactionId].pin_owner]!=0);
+        pendingWithdrawals[mortgages[transactionId].pin_owner]=0;
+        mortgages[transactionId].pin_owner.transfer(address(this).balance);
     }
 
 
     /// @dev Allows anyone to submit and confirm a transaction.
-    /// @param bank represent the one that lend money
-    /// @param beneficiary represent the one whom the money has been lent to
-    /// @param pinOwner represent the owner of the property that the beneficiary wants to buy
-    /// @param pin represent the property identification number
-    /// @param amount represent the nb of ether lent
-    /// @param rates represent the interest
-    /// @param length the amount of time the beneficiary has to pay back the _bank
+    /// @param _bank represent the one that lend money
+    /// @param _beneficiary represent the one whom the money has been lent to
+    /// @param _pin_owner represent the owner of the property that the beneficiary wants to buy
+    /// @param _pin represent the property identification number
+    /// @param _amount represent the nb of ether lent
+    /// @param _rates represent the interest
+    /// @param _length the amount of time the beneficiary has to pay back the _bank
     /// @param addr the address of the contract that holds the registry
     /// @return Returns transaction ID.
-    function submitTransaction(address payable bank,address payable beneficiary,address payable pinOwner, uint pin, uint amount,uint rates, uint length,address addr) payable external checkIfPaused() returns (uint transactionId) {
+    function submitTransaction(address payable _bank,address payable _beneficiary,address payable _pin_owner, uint _pin, uint _amount,uint _rates, uint _length,address addr) payable public checkIfPaused() returns (uint transactionId) {
 
-        BankContract memory trx = BankContract(bank,beneficiary,3,
-        pinOwner,pin,amount,rates,length,false);
+        BankContract memory trx = BankContract(_bank,_beneficiary,3,
+        _pin_owner,_pin,_amount,_rates,_length,false);
         transactionId = addTransaction(trx);
-        parties[transactionId].push(bank);
-        parties[transactionId].push(beneficiary);
-        parties[transactionId].push(pinOwner);
+        parties[transactionId].push(_bank);
+        parties[transactionId].push(_beneficiary);
+        parties[transactionId].push(_pin_owner);
         for (uint i=0; i<parties[transactionId].length; i++) {
             require(!isParty[transactionId][parties[transactionId][i]] && parties[transactionId][i] != address(0));
             isParty[transactionId][parties[transactionId][i]] = true;
         }
-        pendingWithdrawals[pinOwner]=amount*ETHER_;
-        require(msg.value == amount*ETHER_,"The sender has to deposit the exact price of the loan in the contract");
+        pendingWithdrawals[_pin_owner]=_amount*ETHER;
+        require(msg.value == _amount*ETHER,"The sender has to deposit the exact price of the loan in the contract");
+        address(this).transfer(_amount*ETHER);
         confirmTransaction(transactionId,addr);
-        address(this).transfer(amount*ETHER_);
         return transactionId;
     }
 
@@ -127,15 +123,15 @@ contract Mortgage is Ownable {
         /// @param txx is the bankcontract just initialized 
         /// @return Returns transaction ID.
     function addTransaction(BankContract memory txx) internal returns (uint transactionId) {
-        transactionId = mortgageCount;
+        transactionId = MortgageCount;
         mortgages[transactionId] = txx;
-        mortgageCount += 1;
+        MortgageCount += 1;
         emit Submission(transactionId);
     }
 
     /// @dev Check if the transaction has been executed
     /// @param transactionId Transaction ID.
-    function isExecuted(uint transactionId) external view returns (bool){
+    function isExecuted(uint transactionId)public view returns (bool){
         return mortgages[transactionId].executed;
     }
 
@@ -143,8 +139,8 @@ contract Mortgage is Ownable {
     /// @param transactionId Transaction ID.
     /// @param addr is the address of the contract representing the land registry
     function confirmTransaction(uint transactionId,address addr) public checkIfPaused() {
-        require(!confirmations[transactionId][msg.sender]);
-        require(isParty[transactionId][msg.sender]);
+        require(confirmations[transactionId][msg.sender] == false);
+        require(isParty[transactionId][msg.sender]==true);
         confirmations[transactionId][msg.sender] = true;
         emit Confirmation(msg.sender, transactionId);
         executeTransaction(transactionId,addr);
@@ -152,9 +148,9 @@ contract Mortgage is Ownable {
 
     /// @dev Allows an owner to revoke a confirmation for a transaction.
     /// @param transactionId Transaction ID.
-    function revokeConfirmation(uint transactionId) external {
-        require(confirmations[transactionId][msg.sender]);
-        require(isParty[transactionId][msg.sender]);
+    function revokeConfirmation(uint transactionId) public {
+        require(confirmations[transactionId][msg.sender] == true);
+        require(isParty[transactionId][msg.sender]==true);
         confirmations[transactionId][msg.sender] = false;
         emit Revocation(transactionId,msg.sender);
     }
@@ -175,14 +171,14 @@ contract Mortgage is Ownable {
     /// @param addr is the address of the contract representing the land registry
     function executeTransaction(uint transactionId,address addr) public payable {
         if (isConfirmed(transactionId)) {
-            //pinOwner.transfer(mortgages[transactionId].amount);
+            //pin_owner.transfer(mortgages[transactionId].amount);
             mortgages[transactionId].executed=true;
             emit Execution(transactionId);
-            RegistryforRepayment r = RegistryforRepayment(addr);
             withdraw(transactionId);
+            Registry r = Registry(addr);
+            r.updateProperty(mortgages[transactionId].beneficiary,mortgages[transactionId].pin);
             address repay =createRepayment(transactionId,addr);
-            bool success = r.updateProperty(mortgages[transactionId].beneficiary,mortgages[transactionId].pin);
-            r.grantPermission(repay,'Admin');  
+            r.grantPermission(repay,'Admin');
         }else{
             emit ExecutionFailure(transactionId);
         }
