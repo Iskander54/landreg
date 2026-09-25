@@ -1,0 +1,409 @@
+'forge clean' running (wd: ~/Workspace/perso/landreg)
+'forge config --json' running
+'forge build --build-info --deny never --skip ./test/** ./script/** --force' running (wd: ~/Workspace/perso/landreg)
+INFO:Detectors:
+Detector: arbitrary-send-eth
+MultiOwnership.buyProperty() (contracts/MultiOwnership.sol#145-152) sends eth to arbitrary user
+	Dangerous calls:
+	- reg.getPropertyOwner(pin).transfer(address(this).balance) (contracts/MultiOwnership.sol#149)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#functions-that-send-ether-to-arbitrary-destinations
+INFO:Detectors:
+Detector: controlled-array-length
+Mortgage (contracts/Mortgage.sol#9-201) contract sets array length with a user-controlled value:
+	- parties[transactionId].push(_pin_owner) (contracts/Mortgage.sol#110)
+Mortgage (contracts/Mortgage.sol#9-201) contract sets array length with a user-controlled value:
+	- parties[transactionId].push(_beneficiary) (contracts/Mortgage.sol#109)
+Mortgage (contracts/Mortgage.sol#9-201) contract sets array length with a user-controlled value:
+	- repayments.push(address(repay)) (contracts/Mortgage.sol#163)
+Mortgage (contracts/Mortgage.sol#9-201) contract sets array length with a user-controlled value:
+	- parties[transactionId].push(_bank) (contracts/Mortgage.sol#108)
+MultiOwnership (contracts/MultiOwnership.sol#13-309) contract sets array length with a user-controlled value:
+	- owners.push(msg.sender) (contracts/MultiOwnership.sol#102)
+MultiOwnership (contracts/MultiOwnership.sol#13-309) contract sets array length with a user-controlled value:
+	- owners.push(msg.sender) (contracts/MultiOwnership.sol#168)
+MultiOwnership (contracts/MultiOwnership.sol#13-309) contract sets array length with a user-controlled value:
+	- owners.push(_newOwner) (contracts/MultiOwnership.sol#232)
+Registry (contracts/Registry.sol#9-100) contract sets array length with a user-controlled value:
+	- properties[pin].listPointer = propertyList.push(pin) - 1 (contracts/Registry.sol#69)
+Registry (contracts/Registry.sol#9-100) contract sets array length with a user-controlled value:
+	- properties[1].listPointer = propertyList.push(1) - 1 (contracts/Registry.sol#29)
+RoleManagement (contracts/RoleManagement.sol#6-138) contract sets array length with a user-controlled value:
+	- UserRoles.push(Owner) (contracts/RoleManagement.sol#18)
+RoleManagement (contracts/RoleManagement.sol#6-138) contract sets array length with a user-controlled value:
+	- UserRoles.push(Client) (contracts/RoleManagement.sol#17)
+RoleManagement (contracts/RoleManagement.sol#6-138) contract sets array length with a user-controlled value:
+	- UserRoles.push(Admin) (contracts/RoleManagement.sol#16)
+RoleManagement (contracts/RoleManagement.sol#6-138) contract sets array length with a user-controlled value:
+	- UserRoles.push(Bank) (contracts/RoleManagement.sol#19)
+RoleManagement (contracts/RoleManagement.sol#6-138) contract sets array length with a user-controlled value:
+	- UserRoles.push(_role) (contracts/RoleManagement.sol#86)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#array-length-assignment
+INFO:Detectors:
+Detector: reentrancy-eth
+Reentrancy in Repayment.makePayment() (contracts/Repayment.sol#88-106):
+	External calls:
+	- penalty = MissedPayment() (contracts/Repayment.sol#90)
+		- r.updateProperty(creditor,pin) (contracts/Repayment.sol#143)
+	External calls sending eth:
+	- msg.sender.transfer(change) (contracts/Repayment.sol#94)
+	State variables written after the call(s):
+	- processPeriod(0) (contracts/Repayment.sol#97)
+		- balance -= principal (contracts/Repayment.sol#77)
+	Repayment.balance (contracts/Repayment.sol#19) can be used in cross function reentrancies:
+	- Repayment.MissedPayment() (contracts/Repayment.sol#126-139)
+	- Repayment.balance (contracts/Repayment.sol#19)
+	- Repayment.calculateComponents(uint256) (contracts/Repayment.sol#57-63)
+	- Repayment.constructor(address,address,uint256,uint256,uint256,uint256,address,uint256) (contracts/Repayment.sol#36-55)
+	- Repayment.makePayment() (contracts/Repayment.sol#88-106)
+	- Repayment.minimumPayment() (contracts/Repayment.sol#65-69)
+	- Repayment.processMissedPayment() (contracts/Repayment.sol#109-124)
+	- Repayment.processPeriod(uint256) (contracts/Repayment.sol#76-79)
+	- processPeriod(0) (contracts/Repayment.sol#97)
+		- dueDate += paymentPeriod (contracts/Repayment.sol#78)
+	Repayment.dueDate (contracts/Repayment.sol#24) can be used in cross function reentrancies:
+	- Repayment.MissedPayment() (contracts/Repayment.sol#126-139)
+	- Repayment.dueDate (contracts/Repayment.sol#24)
+	- Repayment.makePayment() (contracts/Repayment.sol#88-106)
+	- Repayment.processMissedPayment() (contracts/Repayment.sol#109-124)
+	- Repayment.processPeriod(uint256) (contracts/Repayment.sol#76-79)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-1
+INFO:Detectors:
+Detector: divide-before-multiply
+MultiOwnership.addMoney() (contracts/MultiOwnership.sol#182-195) performs a multiplication on the result of a division:
+	- ownersPct[msg.sender] = SafeMath.add(SafeMath.mul(SafeMath.div(msg.value,amountToReach),100),tmp) (contracts/MultiOwnership.sol#191)
+Repayment.processMissedPayment() (contracts/Repayment.sol#109-124) performs a multiplication on the result of a division:
+	- interest = SafeMath.div(tmp,100) (contracts/Repayment.sol#114)
+	- fees = SafeMath.mul(missedPayment,interest) (contracts/Repayment.sol#115)
+Repayment.MissedPayment() (contracts/Repayment.sol#126-139) performs a multiplication on the result of a division:
+	- interest = SafeMath.div(tmp,100) (contracts/Repayment.sol#131)
+	- fees = SafeMath.mul(missedPayment,interest) (contracts/Repayment.sol#132)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#divide-before-multiply
+INFO:Detectors:
+Detector: incorrect-equality
+MultiOwnership.joinSharedProperty() (contracts/MultiOwnership.sol#159-177) uses a dangerous strict equality:
+	- pendingBuying == amountToReach (contracts/MultiOwnership.sol#173)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#dangerous-strict-equalities
+INFO:Detectors:
+Detector: tautology
+Repayment.makePayment() (contracts/Repayment.sol#88-106) contains a tautology or contradiction:
+	- change >= 0 (contracts/Repayment.sol#93)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#tautology-or-contradiction
+INFO:Detectors:
+Detector: unused-return
+Mortgage.executeTransaction(uint256,address) (contracts/Mortgage.sol#172-185) ignores return value by r.updateProperty(mortgages[transactionId].beneficiary,mortgages[transactionId].pin) (contracts/Mortgage.sol#179)
+MultiOwnership.buyProperty() (contracts/MultiOwnership.sol#145-152) ignores return value by reg.updateProperty(address(this),pin) (contracts/MultiOwnership.sol#150)
+Repayment.cancelLoan() (contracts/Repayment.sol#141-145) ignores return value by r.updateProperty(creditor,pin) (contracts/Repayment.sol#143)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unused-return
+INFO:Detectors:
+Detector: missing-zero-check
+MultiOwnership.constructor(uint256,uint256,uint256,uint256,address)._regaddr (contracts/MultiOwnership.sol#95) lacks a zero-check on :
+		- regaddr = _regaddr (contracts/MultiOwnership.sol#107)
+Repayment.constructor(address,address,uint256,uint256,uint256,uint256,address,uint256)._creditor (contracts/Repayment.sol#37) lacks a zero-check on :
+		- creditor = _creditor (contracts/Repayment.sol#46)
+Repayment.constructor(address,address,uint256,uint256,uint256,uint256,address,uint256)._creditee (contracts/Repayment.sol#38) lacks a zero-check on :
+		- creditee = _creditee (contracts/Repayment.sol#47)
+Repayment.constructor(address,address,uint256,uint256,uint256,uint256,address,uint256)._reg (contracts/Repayment.sol#43) lacks a zero-check on :
+		- Reg = _reg (contracts/Repayment.sol#53)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-zero-address-validation
+INFO:Detectors:
+Detector: incorrect-modifier
+Modifier Migrations.restricted() (contracts/Migrations.sol#11-13) does not always execute _; or revert
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-modifier
+INFO:Detectors:
+Detector: reentrancy-benign
+Reentrancy in Mortgage.executeTransaction(uint256,address) (contracts/Mortgage.sol#172-185):
+	External calls:
+	- r.updateProperty(mortgages[transactionId].beneficiary,mortgages[transactionId].pin) (contracts/Mortgage.sol#179)
+	External calls sending eth:
+	- withdraw(transactionId) (contracts/Mortgage.sol#177)
+		- mortgages[transactionId].pin_owner.transfer(address(this).balance) (contracts/Mortgage.sol#89)
+	State variables written after the call(s):
+	- repay = createRepayment(transactionId,addr) (contracts/Mortgage.sol#180)
+		- repayments.push(address(repay)) (contracts/Mortgage.sol#163)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-3
+INFO:Detectors:
+Detector: reentrancy-events
+Reentrancy in MultiOwnership.buyProperty() (contracts/MultiOwnership.sol#145-152):
+	External calls:
+	- reg.getPropertyOwner(pin).transfer(address(this).balance) (contracts/MultiOwnership.sol#149)
+	- reg.updateProperty(address(this),pin) (contracts/MultiOwnership.sol#150)
+	External calls sending eth:
+	- reg.getPropertyOwner(pin).transfer(address(this).balance) (contracts/MultiOwnership.sol#149)
+	Event emitted after the call(s):
+	- SharedPropertyBought(pin,address(this),owners.length) (contracts/MultiOwnership.sol#151)
+Reentrancy in Repayment.cancelLoan() (contracts/Repayment.sol#141-145):
+	External calls:
+	- r.updateProperty(creditor,pin) (contracts/Repayment.sol#143)
+	Event emitted after the call(s):
+	- LoanCancelled(pin) (contracts/Repayment.sol#144)
+Reentrancy in Mortgage.executeTransaction(uint256,address) (contracts/Mortgage.sol#172-185):
+	External calls:
+	- r.updateProperty(mortgages[transactionId].beneficiary,mortgages[transactionId].pin) (contracts/Mortgage.sol#179)
+	External calls sending eth:
+	- withdraw(transactionId) (contracts/Mortgage.sol#177)
+		- mortgages[transactionId].pin_owner.transfer(address(this).balance) (contracts/Mortgage.sol#89)
+	Event emitted after the call(s):
+	- CreateRepaymentContract(address(repay)) (contracts/Mortgage.sol#164)
+		- repay = createRepayment(transactionId,addr) (contracts/Mortgage.sol#180)
+Reentrancy in Repayment.makePayment() (contracts/Repayment.sol#88-106):
+	External calls:
+	- penalty = MissedPayment() (contracts/Repayment.sol#90)
+		- r.updateProperty(creditor,pin) (contracts/Repayment.sol#143)
+	External calls sending eth:
+	- msg.sender.transfer(change) (contracts/Repayment.sol#94)
+	Event emitted after the call(s):
+	- ChangeFromPenalty(change) (contracts/Repayment.sol#95)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4
+INFO:Detectors:
+Detector: timestamp
+Repayment.makePayment() (contracts/Repayment.sol#88-106) uses timestamp for comparisons
+	Dangerous comparisons:
+	- now > dueDate (contracts/Repayment.sol#89)
+Repayment.processMissedPayment() (contracts/Repayment.sol#109-124) uses timestamp for comparisons
+	Dangerous comparisons:
+	- require(bool)(now > dueDate) (contracts/Repayment.sol#110)
+Repayment.MissedPayment() (contracts/Repayment.sol#126-139) uses timestamp for comparisons
+	Dangerous comparisons:
+	- require(bool)(now > dueDate) (contracts/Repayment.sol#127)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+INFO:Detectors:
+Detector: boolean-equal
+Mortgage.circuitBreaker() (contracts/Mortgage.sol#71-74) compares to a boolean constant:
+	-contractPaused == false (contracts/Mortgage.sol#72)
+Mortgage.confirmTransaction(uint256,address) (contracts/Mortgage.sol#141-147) compares to a boolean constant:
+	-require(bool)(confirmations[transactionId][msg.sender] == false) (contracts/Mortgage.sol#142)
+Mortgage.confirmTransaction(uint256,address) (contracts/Mortgage.sol#141-147) compares to a boolean constant:
+	-require(bool)(isParty[transactionId][msg.sender] == true) (contracts/Mortgage.sol#143)
+Mortgage.revokeConfirmation(uint256) (contracts/Mortgage.sol#151-156) compares to a boolean constant:
+	-require(bool)(isParty[transactionId][msg.sender] == true) (contracts/Mortgage.sol#153)
+Mortgage.revokeConfirmation(uint256) (contracts/Mortgage.sol#151-156) compares to a boolean constant:
+	-require(bool)(confirmations[transactionId][msg.sender] == true) (contracts/Mortgage.sol#152)
+Mortgage.checkIfPaused() (contracts/Mortgage.sol#48-51) compares to a boolean constant:
+	-require(bool)(contractPaused == false) (contracts/Mortgage.sol#49)
+MultiOwnership.upVote() (contracts/MultiOwnership.sol#264-274) compares to a boolean constant:
+	-require(bool,string)(voters[operation][msg.sender] == false,Sender already voted.) (contracts/MultiOwnership.sol#267)
+MultiOwnership.downVote() (contracts/MultiOwnership.sol#280-289) compares to a boolean constant:
+	-require(bool,string)(voters[operation][msg.sender] == false,Sender already voted.) (contracts/MultiOwnership.sol#283)
+MultiOwnership.onlyOwner() (contracts/MultiOwnership.sol#83-86) compares to a boolean constant:
+	-require(bool,string)(isOwner(msg.sender) == true,You are not part of the owners.) (contracts/MultiOwnership.sol#84)
+RoleManagement.addRolesList(string) (contracts/RoleManagement.sol#84-88) compares to a boolean constant:
+	-checkExistingRole(_role) == false (contracts/RoleManagement.sol#85)
+RoleManagement.onlyExistingRole(string) (contracts/RoleManagement.sol#42-45) compares to a boolean constant:
+	-require(bool,string)(checkExistingRole(_role) == true,The role you want to assign doesn't exist.) (contracts/RoleManagement.sol#43)
+RoleManagement.onlyAdmin() (contracts/RoleManagement.sol#66-70) compares to a boolean constant:
+	-require(bool,string)(checkAdmin(msg.sender,Admin) == true,You need to be an admin or an owner to proceed this action.) (contracts/RoleManagement.sol#68)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#boolean-equality
+INFO:Detectors:
+Detector: function-init-state
+Repayment.dueDate (contracts/Repayment.sol#24) is set pre-construction with a non-constant function or state variable:
+	- now + paymentPeriod
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#function-initializing-state
+INFO:Detectors:
+Detector: solc-version
+Version constraint >=0.4.21<0.6.0 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)
+	- DirtyBytesArrayToStorage
+	- ABIDecodeTwoDimensionalArrayMemory
+	- KeccakCaching
+	- EmptyByteArrayCopy
+	- DynamicArrayCleanup
+	- ImplicitConstructorCallvalueCheck
+	- TupleAssignmentMultiStackSlotComponents
+	- MemoryArrayCreationOverflow
+	- privateCanBeOverridden
+	- SignedArrayStorageCopy
+	- ABIEncoderV2StorageArrayWithMultiSlotElement
+	- DynamicConstructorArgumentsClippedABIV2
+	- UninitializedFunctionPointerInConstructor_0.4.x
+	- IncorrectEventSignatureInLibraries_0.4.x
+	- ABIEncoderV2PackedStorage_0.4.x
+	- ExpExponentCleanup
+	- EventStructWrongData
+	- NestedArrayFunctionCallDecoder.
+It is used by:
+	- >=0.4.21<0.6.0 (contracts/Migrations.sol#1)
+solc-0.5.17 is an outdated solc version. Use a more recent version (at least 0.8.0), if possible.
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity
+INFO:Detectors:
+Detector: missing-inheritance
+Registry (contracts/Registry.sol#9-100) should inherit from Registry (contracts/MultiOwnership.sol#7-11)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-inheritance
+INFO:Detectors:
+Detector: naming-convention
+Parameter Migrations.upgrade(address).new_address (contracts/Migrations.sol#19) is not in mixedCase
+Variable Migrations.last_completed_migration (contracts/Migrations.sol#5) is not in mixedCase
+Parameter Mortgage.submitTransaction(address,address,address,uint256,uint256,uint256,uint256,address)._bank (contracts/Mortgage.sol#103) is not in mixedCase
+Parameter Mortgage.submitTransaction(address,address,address,uint256,uint256,uint256,uint256,address)._beneficiary (contracts/Mortgage.sol#103) is not in mixedCase
+Parameter Mortgage.submitTransaction(address,address,address,uint256,uint256,uint256,uint256,address)._pin_owner (contracts/Mortgage.sol#103) is not in mixedCase
+Parameter Mortgage.submitTransaction(address,address,address,uint256,uint256,uint256,uint256,address)._pin (contracts/Mortgage.sol#103) is not in mixedCase
+Parameter Mortgage.submitTransaction(address,address,address,uint256,uint256,uint256,uint256,address)._amount (contracts/Mortgage.sol#103) is not in mixedCase
+Parameter Mortgage.submitTransaction(address,address,address,uint256,uint256,uint256,uint256,address)._rates (contracts/Mortgage.sol#103) is not in mixedCase
+Parameter Mortgage.submitTransaction(address,address,address,uint256,uint256,uint256,uint256,address)._length (contracts/Mortgage.sol#103) is not in mixedCase
+Variable Mortgage.ETHER (contracts/Mortgage.sol#11) is not in mixedCase
+Variable Mortgage.MortgageCount (contracts/Mortgage.sol#12) is not in mixedCase
+Struct MultiOwnership.onSale (contracts/MultiOwnership.sol#16-20) is not in CapWords
+Parameter MultiOwnership.isOwner(address)._owners (contracts/MultiOwnership.sol#59) is not in mixedCase
+Parameter MultiOwnership.sellShare(uint256,uint256)._pct (contracts/MultiOwnership.sol#202) is not in mixedCase
+Parameter MultiOwnership.sellShare(uint256,uint256)._amount (contracts/MultiOwnership.sol#202) is not in mixedCase
+Parameter MultiOwnership.transferOwnership(address,address,uint256)._newOwner (contracts/MultiOwnership.sol#228) is not in mixedCase
+Parameter MultiOwnership.transferOwnership(address,address,uint256)._oldOwner (contracts/MultiOwnership.sol#228) is not in mixedCase
+Parameter MultiOwnership.transferOwnership(address,address,uint256)._pct (contracts/MultiOwnership.sol#228) is not in mixedCase
+Variable MultiOwnership.FINNEY (contracts/MultiOwnership.sol#31) is not in mixedCase
+Function Repayment.MissedPayment() (contracts/Repayment.sol#126-139) is not in mixedCase
+Variable Repayment.ETHER (contracts/Repayment.sol#12) is not in mixedCase
+Variable Repayment.Reg (contracts/Repayment.sol#26) is not in mixedCase
+Parameter RoleManagement.checkExistingRole(string)._role (contracts/RoleManagement.sol#27) is not in mixedCase
+Parameter RoleManagement.checkAdmin(address,string)._operator (contracts/RoleManagement.sol#52) is not in mixedCase
+Parameter RoleManagement.checkAdmin(address,string)._role (contracts/RoleManagement.sol#52) is not in mixedCase
+Parameter RoleManagement.addRolesList(string)._role (contracts/RoleManagement.sol#84) is not in mixedCase
+Parameter RoleManagement.hasRole(address,string)._operator (contracts/RoleManagement.sol#97) is not in mixedCase
+Parameter RoleManagement.hasRole(address,string)._role (contracts/RoleManagement.sol#97) is not in mixedCase
+Parameter RoleManagement.addRole(address,string)._operator (contracts/RoleManagement.sol#110) is not in mixedCase
+Parameter RoleManagement.addRole(address,string)._role (contracts/RoleManagement.sol#110) is not in mixedCase
+Parameter RoleManagement.removeRole(address,string)._operator (contracts/RoleManagement.sol#122) is not in mixedCase
+Parameter RoleManagement.removeRole(address,string)._role (contracts/RoleManagement.sol#122) is not in mixedCase
+Parameter RoleManagement.grantPermission(address,string)._operator (contracts/RoleManagement.sol#130) is not in mixedCase
+Parameter RoleManagement.grantPermission(address,string)._permission (contracts/RoleManagement.sol#130) is not in mixedCase
+Parameter RoleManagement.revokePermission(address,string)._operator (contracts/RoleManagement.sol#134) is not in mixedCase
+Parameter RoleManagement.revokePermission(address,string)._permission (contracts/RoleManagement.sol#134) is not in mixedCase
+Variable RoleManagement.UserRoles (contracts/RoleManagement.sol#10) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
+INFO:Detectors:
+Detector: reentrancy-unlimited-gas
+Reentrancy in MultiOwnership.addMoney() (contracts/MultiOwnership.sol#182-195):
+	External calls:
+	- msg.sender.transfer(SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying))) (contracts/MultiOwnership.sol#186)
+	State variables written after the call(s):
+	- ownersPct[msg.sender] = SafeMath.add(SafeMath.mul(SafeMath.div(msg.value,amountToReach),100),tmp) (contracts/MultiOwnership.sol#191)
+	- pendingBuying = address(this).balance (contracts/MultiOwnership.sol#192)
+	Event emitted after the call(s):
+	- OwnerSharedIncreased(msg.sender,ownersPct[msg.sender]) (contracts/MultiOwnership.sol#193)
+	- SendingBackMoney(msg.value,SafeMath.sub(amountToReach,pendingBuying),SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying))) (contracts/MultiOwnership.sol#188)
+Reentrancy in MultiOwnership.addMoney() (contracts/MultiOwnership.sol#182-195):
+	External calls:
+	- msg.sender.transfer(SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying))) (contracts/MultiOwnership.sol#186)
+	- buyProperty() (contracts/MultiOwnership.sol#194)
+		- reg.getPropertyOwner(pin).transfer(address(this).balance) (contracts/MultiOwnership.sol#149)
+	State variables written after the call(s):
+	- buyProperty() (contracts/MultiOwnership.sol#194)
+		- pendingBuying = 0 (contracts/MultiOwnership.sol#147)
+	Event emitted after the call(s):
+	- SharedPropertyBought(pin,address(this),owners.length) (contracts/MultiOwnership.sol#151)
+		- buyProperty() (contracts/MultiOwnership.sol#194)
+Reentrancy in MultiOwnership.buyProperty() (contracts/MultiOwnership.sol#145-152):
+	External calls:
+	- reg.getPropertyOwner(pin).transfer(address(this).balance) (contracts/MultiOwnership.sol#149)
+	Event emitted after the call(s):
+	- SharedPropertyBought(pin,address(this),owners.length) (contracts/MultiOwnership.sol#151)
+Reentrancy in Mortgage.executeTransaction(uint256,address) (contracts/Mortgage.sol#172-185):
+	External calls:
+	- withdraw(transactionId) (contracts/Mortgage.sol#177)
+		- mortgages[transactionId].pin_owner.transfer(address(this).balance) (contracts/Mortgage.sol#89)
+	State variables written after the call(s):
+	- repay = createRepayment(transactionId,addr) (contracts/Mortgage.sol#180)
+		- repayments.push(address(repay)) (contracts/Mortgage.sol#163)
+	Event emitted after the call(s):
+	- CreateRepaymentContract(address(repay)) (contracts/Mortgage.sol#164)
+		- repay = createRepayment(transactionId,addr) (contracts/Mortgage.sol#180)
+Reentrancy in MultiOwnership.joinSharedProperty() (contracts/MultiOwnership.sol#159-177):
+	External calls:
+	- msg.sender.transfer(SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying))) (contracts/MultiOwnership.sol#164)
+	State variables written after the call(s):
+	- owners.push(msg.sender) (contracts/MultiOwnership.sol#168)
+	- ownersIndices[msg.sender] = owners.length (contracts/MultiOwnership.sol#169)
+	- ownersPct[msg.sender] = SafeMath.div(SafeMath.mul(amount,100),amountToReach) (contracts/MultiOwnership.sol#170)
+	- pendingBuying = address(this).balance (contracts/MultiOwnership.sol#171)
+	Event emitted after the call(s):
+	- SendingBackMoney(msg.value,SafeMath.sub(amountToReach,pendingBuying),SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying))) (contracts/MultiOwnership.sol#166)
+	- SharedPropertyJoined(msg.sender,ownersPct[msg.sender],SafeMath.sub(amountToReach,pendingBuying)) (contracts/MultiOwnership.sol#172)
+Reentrancy in MultiOwnership.joinSharedProperty() (contracts/MultiOwnership.sol#159-177):
+	External calls:
+	- msg.sender.transfer(SafeMath.sub(msg.value,SafeMath.sub(amountToReach,pendingBuying))) (contracts/MultiOwnership.sol#164)
+	- buyProperty() (contracts/MultiOwnership.sol#174)
+		- reg.getPropertyOwner(pin).transfer(address(this).balance) (contracts/MultiOwnership.sol#149)
+	State variables written after the call(s):
+	- buyProperty() (contracts/MultiOwnership.sol#174)
+		- pendingBuying = 0 (contracts/MultiOwnership.sol#147)
+	Event emitted after the call(s):
+	- SharedPropertyBought(pin,address(this),owners.length) (contracts/MultiOwnership.sol#151)
+		- buyProperty() (contracts/MultiOwnership.sol#174)
+Reentrancy in Repayment.makePayment() (contracts/Repayment.sol#88-106):
+	External calls:
+	- msg.sender.transfer(change) (contracts/Repayment.sol#94)
+	State variables written after the call(s):
+	- processPeriod(0) (contracts/Repayment.sol#97)
+		- balance -= principal (contracts/Repayment.sol#77)
+	- processPeriod(0) (contracts/Repayment.sol#97)
+		- dueDate += paymentPeriod (contracts/Repayment.sol#78)
+	Event emitted after the call(s):
+	- ChangeFromPenalty(change) (contracts/Repayment.sol#95)
+Reentrancy in Mortgage.submitTransaction(address,address,address,uint256,uint256,uint256,uint256,address) (contracts/Mortgage.sol#103-120):
+	External calls:
+	- address(this).transfer(_amount * ETHER) (contracts/Mortgage.sol#117)
+	- confirmTransaction(transactionId,addr) (contracts/Mortgage.sol#118)
+		- mortgages[transactionId].pin_owner.transfer(address(this).balance) (contracts/Mortgage.sol#89)
+	State variables written after the call(s):
+	- confirmTransaction(transactionId,addr) (contracts/Mortgage.sol#118)
+		- confirmations[transactionId][msg.sender] = true (contracts/Mortgage.sol#144)
+	- confirmTransaction(transactionId,addr) (contracts/Mortgage.sol#118)
+		- mortgages[transactionId].executed = true (contracts/Mortgage.sol#175)
+	- confirmTransaction(transactionId,addr) (contracts/Mortgage.sol#118)
+		- pendingWithdrawals[mortgages[transactionId].pin_owner] = 0 (contracts/Mortgage.sol#88)
+	- confirmTransaction(transactionId,addr) (contracts/Mortgage.sol#118)
+		- repayments.push(address(repay)) (contracts/Mortgage.sol#163)
+	Event emitted after the call(s):
+	- Confirmation(msg.sender,transactionId) (contracts/Mortgage.sol#145)
+		- confirmTransaction(transactionId,addr) (contracts/Mortgage.sol#118)
+	- CreateRepaymentContract(address(repay)) (contracts/Mortgage.sol#164)
+		- confirmTransaction(transactionId,addr) (contracts/Mortgage.sol#118)
+	- Execution(transactionId) (contracts/Mortgage.sol#176)
+		- confirmTransaction(transactionId,addr) (contracts/Mortgage.sol#118)
+	- ExecutionFailure(transactionId) (contracts/Mortgage.sol#183)
+		- confirmTransaction(transactionId,addr) (contracts/Mortgage.sol#118)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-5
+INFO:Detectors:
+Detector: unindexed-event-address
+Event Mortgage.CreateRepaymentContract(address) (contracts/Mortgage.sol#44) has address parameters but no indexed parameters
+Event MultiOwnership.SharedPropertyJoined(address,uint256,uint256) (contracts/MultiOwnership.sol#44) has address parameters but no indexed parameters
+Event MultiOwnership.SharedPropertyBought(uint256,address,uint256) (contracts/MultiOwnership.sol#45) has address parameters but no indexed parameters
+Event MultiOwnership.OwnerSharedIncreased(address,uint256) (contracts/MultiOwnership.sol#46) has address parameters but no indexed parameters
+Event MultiOwnership.SharedPutMarket(address,uint256,uint256) (contracts/MultiOwnership.sol#47) has address parameters but no indexed parameters
+Event MultiOwnership.SharedSold(address,address,uint256) (contracts/MultiOwnership.sol#48) has address parameters but no indexed parameters
+Event MultiOwnership.OwnershipTransferred(address,address,uint256) (contracts/MultiOwnership.sol#49) has address parameters but no indexed parameters
+Event MultiOwnership.OperationCreated(bytes32,address) (contracts/MultiOwnership.sol#50) has address parameters but no indexed parameters
+Event MultiOwnership.OperationUpvoted(bytes32,uint256,uint256,address) (contracts/MultiOwnership.sol#51) has address parameters but no indexed parameters
+Event MultiOwnership.OperationDownvoted(bytes32,uint256,uint256,address) (contracts/MultiOwnership.sol#53) has address parameters but no indexed parameters
+Event MultiOwnership.OperationCancelled(bytes32,address,uint256,uint256) (contracts/MultiOwnership.sol#54) has address parameters but no indexed parameters
+Event Registry.LogNewProperty(uint256,address) (contracts/Registry.sol#23) has address parameters but no indexed parameters
+Event Registry.LogUpdateProperty(address,address,address) (contracts/Registry.sol#25) has address parameters but no indexed parameters
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unindexed-event-address-parameters
+INFO:Detectors:
+Detector: cache-array-length
+Loop condition i < UserRoles.length (contracts/RoleManagement.sol#29) should use cached array length instead of referencing `length` member of the storage array.
+ Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#cache-array-length
+INFO:Detectors:
+Detector: constable-states
+Mortgage.ETHER (contracts/Mortgage.sol#11) should be constant 
+MultiOwnership.FINNEY (contracts/MultiOwnership.sol#31) should be constant 
+Repayment.ETHER (contracts/Repayment.sol#12) should be constant 
+Repayment.paymentPeriod (contracts/Repayment.sol#23) should be constant 
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#state-variables-that-could-be-declared-constant
+INFO:Detectors:
+Detector: external-function
+grantPermission(address,string) should be declared external:
+	- Registry.grantPermission(address,string) (contracts/MultiOwnership.sol#9)
+Moreover, the following function parameters should change its data location:
+_permission location should be calldata
+addRolesList(string) should be declared external:
+	- RoleManagement.addRolesList(string) (contracts/RoleManagement.sol#84-88)
+Moreover, the following function parameters should change its data location:
+_role location should be calldata
+hasRole(address,string) should be declared external:
+	- RoleManagement.hasRole(address,string) (contracts/RoleManagement.sol#97-103)
+Moreover, the following function parameters should change its data location:
+_role location should be calldata
+revokePermission(address,string) should be declared external:
+	- RoleManagement.revokePermission(address,string) (contracts/RoleManagement.sol#134-136)
+Moreover, the following function parameters should change its data location:
+_permission location should be calldata
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#public-function-that-could-be-declared-external
+INFO:Slither:. analyzed (12 contracts with 102 detectors), 120 result(s) found

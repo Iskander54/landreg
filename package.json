@@ -9,7 +9,6 @@
   "dependencies": {
     "@openzeppelin/contracts": "^2.4.0"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

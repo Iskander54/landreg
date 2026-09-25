@@ -1,4 +1,11 @@
-build/
 node_modules/
-client/node_modules/
-client/src/contracts
+
+# Foundry
+out/
+out-legacy/
+cache/
+broadcast/
+.env
+
+# Slither
+crytic-export/
