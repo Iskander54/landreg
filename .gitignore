@@ -6,3 +6,6 @@ out-legacy/
 cache/
 broadcast/
 .env
+
+# Slither
+crytic-export/

@@ -1,0 +1,33 @@
+'forge clean' running (wd: ~/Workspace/perso/landreg)
+'forge config --json' running
+'forge build --build-info --deny never --skip ./test-v2/** ./script/** --force' running (wd: ~/Workspace/perso/landreg)
+INFO:Detectors:
+Detector: reentrancy-events
+Reentrancy in Mortgage._execute(uint256) (contracts-v2/Mortgage.sol#104-111):
+	External calls:
+	- registry.updateProperty(loan.beneficiary,loan.pin) (contracts-v2/Mortgage.sol#109)
+	Event emitted after the call(s):
+	- Executed(id,loan.pinOwner,loan.amount) (contracts-v2/Mortgage.sol#110)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4
+INFO:Detectors:
+Detector: timestamp
+Repayment.accrueMissedPayment() (contracts-v2/Repayment.sol#82-96) uses timestamp for comparisons
+	Dangerous comparisons:
+	- require(bool,string)(block.timestamp > dueDate,Rep: not overdue) (contracts-v2/Repayment.sol#83)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+INFO:Detectors:
+Detector: low-level-calls
+Low level call in Mortgage.withdraw() (contracts-v2/Mortgage.sol#114-121):
+	- (ok,None) = address(msg.sender).call{value: amount}() (contracts-v2/Mortgage.sol#118)
+Low level call in MultiOwnership.withdraw() (contracts-v2/MultiOwnership.sol#79-86):
+	- (ok,None) = address(msg.sender).call{value: amount}() (contracts-v2/MultiOwnership.sol#83)
+Low level call in Repayment.makePayment() (contracts-v2/Repayment.sol#51-78):
+	- (ok,None) = address(msg.sender).call{value: change}() (contracts-v2/Repayment.sol#69)
+Low level call in Repayment.withdraw() (contracts-v2/Repayment.sol#98-106):
+	- (ok,None) = address(creditor).call{value: amount}() (contracts-v2/Repayment.sol#103)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
+INFO:Detectors:
+Detector: missing-inheritance
+Registry (contracts-v2/Registry.sol#14-85) should inherit from IRegistry (contracts-v2/Mortgage.sol#6-8)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-inheritance
+INFO:Slither:. analyzed (12 contracts with 102 detectors), 7 result(s) found

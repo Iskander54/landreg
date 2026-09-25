@@ -28,3 +28,19 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           FOUNDRY_PROFILE=legacy forge build
+
+  slither:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Slither (current contracts)
+        uses: crytic/slither-action@v0
+        with:
+          target: "."
+          slither-args: '--filter-paths "test-v2|lib"'
+          fail-on: high
