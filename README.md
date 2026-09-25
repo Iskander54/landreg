@@ -57,6 +57,20 @@ forge build        # compiles all contracts under solc 0.5.17
 > under `0.5`. The security PoC is therefore delivered as the `anvil` + `cast` script above, which
 > exercises the deployed bytecode directly. The original Truffle/mocha suite remains under `test/`.
 
+## Remediated contracts (v2)
+
+Every finding in the review is fixed in `contracts-v2/` (Solidity 0.8, OpenZeppelin 5), with Foundry
+tests in `test-v2/` that prove each fix. The original `contracts/` stay in place as the documented
+"before". Because the fixed contracts are on 0.8, they can be unit-tested:
+
+```bash
+forge install                 # fetches OZ 5 + forge-std into lib/ (or: git submodule update --init)
+FOUNDRY_PROFILE=v2 forge test
+```
+
+Expected: **17 passing tests**, including the exploit-now-reverts cases for H-01, H-02, and H-03. See
+the remediation table in [SECURITY-REVIEW.md](./SECURITY-REVIEW.md).
+
 ## Deploy to a testnet
 
 Deploy with `forge create` (bring your own funded testnet key and RPC; never commit a private key):

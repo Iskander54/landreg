@@ -156,3 +156,32 @@ Payment windows and penalties key off `block.timestamp`, which miners can nudge 
 1. **H-01, H-02, H-03** — correctness of ownership writes and ETH accounting; fix before any deployment handling value.
 2. **M-01, M-04** — privilege scope and integer safety.
 3. Migrate to Solidity 0.8 + current OpenZeppelin (**I-01/I-02**), which structurally removes M-04 and hardens the value flows.
+
+## Remediation (implemented in contracts-v2)
+
+Every finding above is fixed in a modern rewrite under `contracts-v2/` (Solidity 0.8, OpenZeppelin 5),
+with Foundry tests under `test-v2/` that prove each fix. The original `contracts/` are left untouched
+as the "before". Run the suite:
+
+```bash
+FOUNDRY_PROFILE=v2 forge test
+```
+
+Result: **17 passing tests** across the five contracts.
+
+| Finding | Fixed by | Proven by |
+|---|---|---|
+| H-01 | REGISTRAR_ROLE gates every Registry mutator (OZ AccessControl) | `test_H01_newProperty_reverts_for_nonAdmin` |
+| H-02 | `Mortgage.withdraw` pays each account's tracked credit, never the balance (pull-payment + `nonReentrant`) | `test_H02_withdraw_pays_only_tx_amount` |
+| H-03 | `MultiOwnership.buyShare` credits the seller; sale cached before swap-and-pop | `test_H03_buyShare_pays_seller` |
+| M-01 | Execution is `internal`; Mortgage holds a scoped REGISTRAR_ROLE, not admin | Mortgage flow tests |
+| M-02 | AccessControl (bytes32 roles) replaces the uint8-looped string roles | Registry role tests |
+| M-03 | Explicit operation-existence mapping; conditional surplus refund | `test_M03_*` (MultiOwnership + Repayment) |
+| M-04 | Solidity 0.8 checked arithmetic | structural |
+| M-05 | `block.timestamp` over day-granularity periods, documented | `test_missed_payment_accrues_penalty` |
+| L-01 / L-02 | No hardcoded constructor state; existence flags + `pop()` | `test_delete_keeps_list_consistent` |
+| L-03 / L-04 / L-05 / L-06 | No event-in-modifier; explicit returns; single inheritance; bytes32 roles | structural |
+
+Note: the v2 contracts are a clean remediation, not a line-by-line port. A few tangled original flows
+(e.g. `Mortgage` spawning a `Repayment` that received blanket Registry admin) were simplified as part
+of the fix, and documented in each contract's header.

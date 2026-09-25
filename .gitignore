@@ -8,3 +8,6 @@ out/
 cache/
 broadcast/
 .env
+
+# Foundry v2 build
+out-v2/
