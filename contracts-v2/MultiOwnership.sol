@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /// @title MultiOwnership (remediated)
 /// @notice Fractional co-ownership of a property: owners hold percentage shares, can list a
@@ -28,7 +28,9 @@ contract MultiOwnership is ReentrancyGuard {
     mapping(bytes32 => mapping(address => bool)) public voted;
 
     event SharePutForSale(uint256 indexed index, address indexed seller, uint256 pct, uint256 price);
-    event ShareSold(uint256 indexed index, address indexed seller, address indexed buyer, uint256 pct, uint256 price);
+    event ShareSold(
+        uint256 indexed index, address indexed seller, address indexed buyer, uint256 pct, uint256 price
+    );
     event Withdrawn(address indexed to, uint256 amount);
     event OperationProposed(bytes32 indexed op, address indexed proposer);
     event OperationVoted(bytes32 indexed op, address indexed voter, uint256 totalPct);
@@ -46,7 +48,7 @@ contract MultiOwnership is ReentrancyGuard {
     /// @notice List part of your ownership for sale.
     function sellShare(uint256 pct, uint256 price) external onlyOwner returns (uint256 index) {
         require(pct > 0 && pct <= ownershipPct[msg.sender], "MO: bad pct");
-        sales.push(Sale({seller: msg.sender, pct: pct, price: price}));
+        sales.push(Sale({ seller: msg.sender, pct: pct, price: price }));
         index = sales.length - 1;
         emit SharePutForSale(index, msg.sender, pct, price);
     }
@@ -78,7 +80,7 @@ contract MultiOwnership is ReentrancyGuard {
         uint256 amount = pendingWithdrawals[msg.sender];
         require(amount > 0, "MO: nothing to withdraw");
         pendingWithdrawals[msg.sender] = 0;
-        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        (bool ok,) = payable(msg.sender).call{ value: amount }("");
         require(ok, "MO: transfer failed");
         emit Withdrawn(msg.sender, amount);
     }

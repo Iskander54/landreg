@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
-import {Test} from "forge-std/Test.sol";
-import {MultiOwnership} from "../contracts-v2/MultiOwnership.sol";
+import { Test } from "forge-std/Test.sol";
+import { MultiOwnership } from "../contracts-v2/MultiOwnership.sol";
 
 /// @dev Proves the MultiOwnership remediations, above all H-03 (the seller gets paid).
 contract MultiOwnershipTest is Test {
@@ -23,7 +23,7 @@ contract MultiOwnershipTest is Test {
 
         vm.deal(buyer, price);
         vm.prank(buyer);
-        mo.buyShare{value: price}(index);
+        mo.buyShare{ value: price }(index);
 
         // ownership moved
         assertEq(mo.ownershipPct(seller), 60);
@@ -46,7 +46,7 @@ contract MultiOwnershipTest is Test {
         vm.deal(buyer, 1 ether);
         vm.prank(buyer);
         vm.expectRevert(bytes("MO: wrong price"));
-        mo.buyShare{value: 0.5 ether}(0);
+        mo.buyShare{ value: 0.5 ether }(0);
     }
 
     /// M-03 FIXED: voting on a non-existent operation reverts (was silently accepted).

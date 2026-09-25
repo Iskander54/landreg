@@ -11,6 +11,7 @@
 # Requires Foundry (anvil, forge, cast). Run from the repo root: bash poc/h01-access-control.sh
 set -u
 export PATH="$HOME/.foundry/bin:$PATH"
+export FOUNDRY_PROFILE=legacy   # the "before" contracts are Solidity 0.5 (see foundry.toml)
 
 RPC=http://127.0.0.1:8545
 # Well-known anvil dev keys (safe to publish -- local test chain only).

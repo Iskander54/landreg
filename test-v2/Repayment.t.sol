@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
-import {Test} from "forge-std/Test.sol";
-import {Repayment} from "../contracts-v2/Repayment.sol";
+import { Test } from "forge-std/Test.sol";
+import { Repayment } from "../contracts-v2/Repayment.sol";
 
 /// @dev Proves the Repayment remediations, above all M-03 (surplus refund is now conditional).
 contract RepaymentTest is Test {
@@ -25,10 +25,10 @@ contract RepaymentTest is Test {
 
         vm.deal(creditee, pay);
         vm.prank(creditee);
-        rep.makePayment{value: pay}();
+        rep.makePayment{ value: pay }();
 
-        assertEq(rep.balance(), 0);                    // loan cleared
-        assertEq(creditee.balance, surplus);           // exactly the surplus came back
+        assertEq(rep.balance(), 0); // loan cleared
+        assertEq(creditee.balance, surplus); // exactly the surplus came back
         assertEq(rep.creditorWithdrawable(), interest + PRINCIPAL); // creditor keeps the rest
     }
 
@@ -37,7 +37,7 @@ contract RepaymentTest is Test {
         uint256 interest = rep.interestDue();
         vm.deal(creditee, interest);
         vm.prank(creditee);
-        rep.makePayment{value: interest}();
+        rep.makePayment{ value: interest }();
 
         assertEq(rep.balance(), PRINCIPAL);
         assertEq(creditee.balance, 0);
@@ -49,7 +49,7 @@ contract RepaymentTest is Test {
         vm.deal(creditee, interest);
         vm.prank(creditee);
         vm.expectRevert(bytes("Rep: must cover interest"));
-        rep.makePayment{value: interest - 1}();
+        rep.makePayment{ value: interest - 1 }();
     }
 
     /// L-04 / M-05: penalty accrual returns explicitly and is time-gated.
@@ -66,7 +66,7 @@ contract RepaymentTest is Test {
         uint256 interest = rep.interestDue();
         vm.deal(creditee, interest);
         vm.prank(creditee);
-        rep.makePayment{value: interest}();
+        rep.makePayment{ value: interest }();
 
         vm.prank(creditor);
         rep.withdraw();

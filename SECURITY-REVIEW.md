@@ -161,13 +161,13 @@ Payment windows and penalties key off `block.timestamp`, which miners can nudge 
 
 Every finding above is fixed in a modern rewrite under `contracts-v2/` (Solidity 0.8, OpenZeppelin 5),
 with Foundry tests under `test-v2/` that prove each fix. The original `contracts/` are left untouched
-as the "before". Run the suite:
+as the "before". The remediated contracts are the default Foundry profile, so run the suite with:
 
 ```bash
-FOUNDRY_PROFILE=v2 forge test
+forge test
 ```
 
-Result: **17 passing tests** across the five contracts.
+Result: **17 passing tests** across the contracts.
 
 | Finding | Fixed by | Proven by |
 |---|---|---|

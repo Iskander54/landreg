@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
-import {Test} from "forge-std/Test.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-import {Registry} from "../contracts-v2/Registry.sol";
+import { Test } from "forge-std/Test.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
+import { Registry } from "../contracts-v2/Registry.sol";
 
 /// @dev Proves the Registry remediations, above all H-01 (access control on newProperty).
 contract RegistryTest is Test {
@@ -24,9 +24,7 @@ contract RegistryTest is Test {
         vm.prank(attacker);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                attacker,
-                registrar
+                IAccessControl.AccessControlUnauthorizedAccount.selector, attacker, registrar
             )
         );
         reg.newProperty(alice, 42);

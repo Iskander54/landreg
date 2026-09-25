@@ -1,13 +1,8 @@
-build/
 node_modules/
-client/node_modules/
-client/src/contracts
 
 # Foundry
 out/
+out-legacy/
 cache/
 broadcast/
 .env
-
-# Foundry v2 build
-out-v2/

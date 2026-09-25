@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
-import {Test} from "forge-std/Test.sol";
-import {Registry} from "../contracts-v2/Registry.sol";
-import {Mortgage} from "../contracts-v2/Mortgage.sol";
+import { Test } from "forge-std/Test.sol";
+import { Registry } from "../contracts-v2/Registry.sol";
+import { Mortgage } from "../contracts-v2/Mortgage.sol";
 
 /// @dev Proves the Mortgage remediations, above all H-02 (per-loan escrow accounting).
 contract MortgageTest is Test {
@@ -37,7 +37,7 @@ contract MortgageTest is Test {
     {
         vm.deal(bank, amt);
         vm.prank(bank);
-        id = mortgage.submitTransaction{value: amt}(bank, ben, owner, pin, amt); // bank confirms (1/3)
+        id = mortgage.submitTransaction{ value: amt }(bank, ben, owner, pin, amt); // bank confirms (1/3)
         vm.prank(ben);
         mortgage.confirmTransaction(id); // 2/3
         vm.prank(owner);
@@ -73,7 +73,7 @@ contract MortgageTest is Test {
     function test_nonParty_cannot_confirm() public {
         vm.deal(bankA, AMT_A);
         vm.prank(bankA);
-        uint256 id = mortgage.submitTransaction{value: AMT_A}(bankA, benA, ownerA, PIN_A, AMT_A);
+        uint256 id = mortgage.submitTransaction{ value: AMT_A }(bankA, benA, ownerA, PIN_A, AMT_A);
         vm.prank(makeAddr("stranger"));
         vm.expectRevert(bytes("Mortgage: not a party"));
         mortgage.confirmTransaction(id);
@@ -83,6 +83,6 @@ contract MortgageTest is Test {
         vm.deal(bankA, AMT_A);
         vm.prank(bankA);
         vm.expectRevert(bytes("Mortgage: deposit must equal amount"));
-        mortgage.submitTransaction{value: 0.5 ether}(bankA, benA, ownerA, PIN_A, AMT_A);
+        mortgage.submitTransaction{ value: 0.5 ether }(bankA, benA, ownerA, PIN_A, AMT_A);
     }
 }

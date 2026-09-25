@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /// @title Repayment (remediated)
 /// @notice Amortized loan repayment: interest is charged per period on the outstanding balance,
@@ -24,7 +24,9 @@ contract Repayment is ReentrancyGuard {
     uint256 public missedPayments;
     uint256 public creditorWithdrawable;
 
-    event Paid(address indexed from, uint256 interest, uint256 principal, uint256 newBalance, uint256 newDueDate);
+    event Paid(
+        address indexed from, uint256 interest, uint256 principal, uint256 newBalance, uint256 newDueDate
+    );
     event Refunded(address indexed to, uint256 amount);
     event MissedPaymentAccrued(uint256 penalty, uint256 newBalance, uint256 newDueDate);
     event LoanCleared();
@@ -64,7 +66,7 @@ contract Repayment is ReentrancyGuard {
         dueDate = block.timestamp + PERIOD;
 
         if (change > 0) {
-            (bool ok, ) = payable(msg.sender).call{value: change}("");
+            (bool ok,) = payable(msg.sender).call{ value: change }("");
             require(ok, "Rep: refund failed");
             emit Refunded(msg.sender, change);
         }
@@ -98,7 +100,7 @@ contract Repayment is ReentrancyGuard {
         uint256 amount = creditorWithdrawable;
         require(amount > 0, "Rep: nothing to withdraw");
         creditorWithdrawable = 0;
-        (bool ok, ) = payable(creditor).call{value: amount}("");
+        (bool ok,) = payable(creditor).call{ value: amount }("");
         require(ok, "Rep: transfer failed");
         emit Withdrawn(creditor, amount);
     }

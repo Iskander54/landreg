@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
 /// @title Registry (remediated)
 /// @notice Authoritative record of property PINs to owners.
@@ -38,7 +38,7 @@ contract Registry is AccessControl {
     function newProperty(address owner, uint256 pin) external onlyRole(REGISTRAR_ROLE) {
         require(owner != address(0), "Registry: zero owner");
         require(!_properties[pin].exists, "Registry: PIN exists");
-        _properties[pin] = Property({owner: owner, listPointer: _pins.length, exists: true});
+        _properties[pin] = Property({ owner: owner, listPointer: _pins.length, exists: true });
         _pins.push(pin);
         emit PropertyCreated(pin, owner);
     }

@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [master, security-review-modernization]
+  pull_request:
+
+jobs:
+  test:
+    name: Format and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Check formatting
+        run: forge fmt --check
+
+      - name: Run tests (current contracts)
+        run: forge test -vv
+
+      - name: Build legacy contracts (Solidity 0.5)
+        run: |
+          npm install --no-audit --no-fund
+          FOUNDRY_PROFILE=legacy forge build

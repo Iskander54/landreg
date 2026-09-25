@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface IRegistry {
     function updateProperty(address newOwner, uint256 pin) external;
@@ -57,8 +57,7 @@ contract Mortgage is ReentrancyGuard {
         require(amount > 0, "Mortgage: zero amount");
         require(msg.value == amount, "Mortgage: deposit must equal amount");
         require(
-            bank != address(0) && beneficiary != address(0) && pinOwner != address(0),
-            "Mortgage: zero party"
+            bank != address(0) && beneficiary != address(0) && pinOwner != address(0), "Mortgage: zero party"
         );
         require(
             bank != beneficiary && bank != pinOwner && beneficiary != pinOwner,
@@ -116,7 +115,7 @@ contract Mortgage is ReentrancyGuard {
         uint256 amount = pendingWithdrawals[msg.sender];
         require(amount > 0, "Mortgage: nothing to withdraw");
         pendingWithdrawals[msg.sender] = 0;
-        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        (bool ok,) = payable(msg.sender).call{ value: amount }("");
         require(ok, "Mortgage: transfer failed");
         emit Withdrawn(msg.sender, amount);
     }
