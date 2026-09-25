@@ -2,3 +2,9 @@ build/
 node_modules/
 client/node_modules/
 client/src/contracts
+
+# Foundry
+out/
+cache/
+broadcast/
+.env

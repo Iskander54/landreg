@@ -1,0 +1,19 @@
+# Foundry configuration — added to modernize this 2019 Truffle project with
+# current tooling (forge build/test, security PoC, testnet deploy).
+# The contracts target Solidity 0.5.x / OpenZeppelin 2.4, so we pin solc 0.5.17
+# and use ds-test (0.5-compatible) rather than forge-std (0.6+).
+
+[profile.default]
+src = "contracts"
+out = "out"
+libs = ["node_modules"]
+solc = "0.5.17"
+optimizer = true
+optimizer_runs = 200
+remappings = [
+    "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
+]
+
+[rpc_endpoints]
+base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
+arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
