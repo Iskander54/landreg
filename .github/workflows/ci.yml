@@ -39,7 +39,7 @@ jobs:
           submodules: recursive
 
       - name: Slither (current contracts)
-        uses: crytic/slither-action@v0
+        uses: crytic/slither-action@v0.4.2
         with:
           target: "."
           slither-args: '--filter-paths "test-v2|lib"'
